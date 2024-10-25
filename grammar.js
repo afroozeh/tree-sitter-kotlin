@@ -985,7 +985,7 @@ module.exports = grammar({
         $.dot_qualified_expression,
         $.index_access_expression,
         $.simple_identifier,
-        // TODO
+        $.postfix_expression,
       )
     ),
 

@@ -979,3 +979,36 @@ Disjunction and negation expression
         op: (prefix_unary_operator)
         expression: (simple_identifier)))
     right: (simple_identifier)))
+
+================================================================================
+Postfix operator in assignment
+================================================================================
+
+fun f(l: MutableList<Int>?) {
+    l!! += 1
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    name: (simple_identifier)
+    parameters: (function_value_parameters
+      (function_value_parameter
+        parameter: (parameter
+          name: (simple_identifier)
+          type: (nullable_type
+            (user_type
+              (type_identifier)
+              (type_arguments
+                (type_projection
+                  (user_type
+                    (type_identifier)))))))))
+    body: (function_body
+      (block
+        (statements
+          (assignment
+            left: (postfix_expression
+              expression: (simple_identifier)
+              operator: (postfix_unary_operator))
+            right: (integer_literal)))))))
