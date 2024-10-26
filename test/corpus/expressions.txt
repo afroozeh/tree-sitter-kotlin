@@ -795,7 +795,8 @@ SceneStateParameters::class.java
 (source_file
   (dot_qualified_expression
     receiver: (callable_reference
-      (type_identifier))
+      (user_type
+        (type_identifier)))
     selector: (simple_identifier)))
 
 ================================================================================
@@ -1012,3 +1013,22 @@ fun f(l: MutableList<Int>?) {
               expression: (simple_identifier)
               operator: (postfix_unary_operator))
             right: (integer_literal)))))))
+
+================================================================================
+Generic callable expression
+================================================================================
+
+BufferedChannel<*>::registerSelectForSend as RegistrationFunction
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (as_expression
+    (callable_reference
+      (user_type
+        (type_identifier)
+        (type_arguments
+          (type_projection)))
+      (simple_identifier))
+    (user_type
+      (type_identifier))))

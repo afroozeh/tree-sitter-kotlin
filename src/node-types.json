@@ -579,7 +579,7 @@
           "named": true
         },
         {
-          "type": "type_identifier",
+          "type": "user_type",
           "named": true
         }
       ]

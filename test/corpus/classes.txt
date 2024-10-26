@@ -492,35 +492,36 @@ fun interface Authenticator {
 --------------------------------------------------------------------------------
 
 (source_file
-      (class_declaration
-        name: (simple_identifier)
-        body: (class_body
-          (function_declaration
-            modifiers: (modifiers
-              (annotation
-                (constructor_invocation
-                  (user_type
-                    (type_identifier))
-                  (value_arguments
-                    (value_argument
-                      (callable_reference
-                        (type_identifier)))))))
-            name: (simple_identifier)
-            parameters: (function_value_parameters
-              (function_value_parameter
-                parameter: (parameter
-                  name: (simple_identifier)
-                  type: (nullable_type
-                    (user_type
-                      (type_identifier)))))
-              (function_value_parameter
-                parameter: (parameter
-                  name: (simple_identifier)
-                  type: (user_type
-                    (type_identifier)))))
-            type: (nullable_type
+  (class_declaration
+    name: (simple_identifier)
+    body: (class_body
+      (function_declaration
+        modifiers: (modifiers
+          (annotation
+            (constructor_invocation
               (user_type
-                (type_identifier)))))))
+                (type_identifier))
+              (value_arguments
+                (value_argument
+                  (callable_reference
+                    (user_type
+                      (type_identifier))))))))
+        name: (simple_identifier)
+        parameters: (function_value_parameters
+          (function_value_parameter
+            parameter: (parameter
+              name: (simple_identifier)
+              type: (nullable_type
+                (user_type
+                  (type_identifier)))))
+          (function_value_parameter
+            parameter: (parameter
+              name: (simple_identifier)
+              type: (user_type
+                (type_identifier)))))
+        type: (nullable_type
+          (user_type
+            (type_identifier)))))))
 
 ================================================================================
 Companion object without body

@@ -43,6 +43,7 @@ const PREC = {
   CONJUNCTION: 4,
   DISJUNCTION: 3,
   VAR_DECL: 3,
+  GENERIC: 3,
   SPREAD: 2,
   SIMPLE_USER_TYPE: 2,
   ASSIGNMENT: 1,
@@ -78,9 +79,6 @@ module.exports = grammar({
     // Ambiguous when used in an explicit delegation expression,
     // since the '{' could either be interpreted as the class body
     // or as the anonymous function body. Consider the following sequence:
-
-    // Member access operator '::' conflicts with callable reference
-    [$._primary_expression, $.callable_reference],
 
     // @Type(... could either be an annotation constructor invocation or an annotated expression
     [$.constructor_invocation, $._unescaped_annotation],
@@ -121,7 +119,13 @@ module.exports = grammar({
 
     [$.expression, $.call_expression],
 
-    [$.object_declaration]
+    [$.object_declaration],
+
+    [$._simple_user_type, $._primary_expression],
+
+    [$._simple_user_type],
+
+    [$.comparison_expression]
   ],
 
   externals: $ => [
@@ -491,16 +495,12 @@ module.exports = grammar({
 
     _quest: $ => "?",
 
-    // TODO: Figure out a better solution than right associativity
-    //       to prevent nested types from being recognized as
-    //       unary expresions with navigation suffixes.
-
     user_type: $ => sep1($._simple_user_type, "."),
 
-    _simple_user_type: $ => prec.right(PREC.SIMPLE_USER_TYPE, seq(
+    _simple_user_type: $ => seq(
       alias($.simple_identifier, $.type_identifier),
       optional($.type_arguments)
-    )),
+    ),
 
     type_projection: $ => choice(
       seq(optional($.type_projection_modifiers), $._type),
@@ -641,12 +641,12 @@ module.exports = grammar({
       ))
     )),
 
-    call_expression: $ => seq(field('expression', $._primary_expression), 
+    call_expression: $ => prec.right(seq(field('expression', $._primary_expression), 
       optional($.type_arguments),
       choice(
-        prec(PREC.CALL, seq(optional(field('args', $.value_arguments)), field('lambda_arg', $.annotated_lambda))),
+        seq(optional(field('args', $.value_arguments)), field('lambda_arg', $.annotated_lambda)),
         field('args', $.value_arguments)
-      )),
+      ))),
     
     index_access_expression: $ => prec(PREC.INDEX, seq(
       field('expression', $.expression), 
@@ -696,7 +696,7 @@ module.exports = grammar({
       seq($._in_operator, $.expression),
       seq($._is_operator, $._type)))),
 
-    comparison_expression: $ => prec.left(PREC.COMPARISON, seq($.expression, $._comparison_operator, $.expression)),
+    comparison_expression: $ => prec(PREC.COMPARISON, seq($.expression, $._comparison_operator, $.expression)),
 
     equality_expression: $ => prec.left(PREC.EQUALITY, seq($.expression, $._equality_operator, $.expression)),
 
@@ -720,7 +720,10 @@ module.exports = grammar({
       $.lambda_literal
     ),
 
-    type_arguments: $ => seq("<", sep1($.type_projection, ","), ">"),
+    // Here we're defining a dynamic precedence for type arguments to resolve the ambiguity
+    // between the comparison and generic call syntax.
+    // Any expression such as a<b>(c) should be resolved in favor of the generic call.
+    type_arguments: $ => prec.dynamic(PREC.GENERIC, seq("<", sep1($.type_projection, ","), ">")),
 
     value_arguments: $ => seq(
       "(",
@@ -951,11 +954,11 @@ module.exports = grammar({
       $._break_at
     ),
 
-    callable_reference: $ => seq(
-      optional(choice(alias($.simple_identifier, $.type_identifier), $.this_expression)),
+    callable_reference: $ => prec(PREC.DOT, seq(
+      optional(choice($.user_type, $.this_expression)),
       "::",
       choice($.simple_identifier, "class")
-    ),
+    )),
 
     _assignment_and_operator: $ => choice("+=", "-=", "*=", "/=", "%="),
 

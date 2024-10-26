@@ -50,7 +50,8 @@ Multiple file annotations
       (value_arguments
         (value_argument
           (callable_reference
-            (type_identifier)))))))
+            (user_type
+              (type_identifier))))))))
 
 ================================================================================
 Imports
