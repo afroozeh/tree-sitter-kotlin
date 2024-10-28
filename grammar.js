@@ -763,7 +763,15 @@ module.exports = grammar({
 
     parenthesized_expression: $ => seq("(", $.expression, ")"),
 
-    collection_literal: $ => seq("[", $.expression, repeat(seq(",", $.expression)), "]"),
+    collection_literal: $ => seq(
+      "[", 
+      optional(seq(
+        $.expression, 
+        repeat(seq(",", $.expression)),
+        optional(","),
+      )),
+      "]"
+    ),
 
     _literal_constant: $ => choice(
       $.boolean_literal,

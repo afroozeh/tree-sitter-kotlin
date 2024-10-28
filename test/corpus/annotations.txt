@@ -125,3 +125,75 @@ fun foo() = bar {}
         expression: (simple_identifier)
         lambda_arg: (annotated_lambda
           (lambda_literal))))))
+
+
+=====================
+Annotation with collection literal 
+======================
+
+@Annotation(
+    owner = "foo",
+    modules = [
+        BAR,
+    ]
+)
+const val BAZ = "baz"
+
+---
+
+(source_file
+  (property_declaration
+    modifiers: (modifiers
+      (annotation
+        (constructor_invocation
+          (user_type
+            (type_identifier))
+          (value_arguments
+            (value_argument
+              (simple_identifier)
+              (string_literal
+                (string_content)))
+            (value_argument
+              (simple_identifier)
+              (collection_literal
+                (simple_identifier))))))
+      (property_modifier))
+    (binding_pattern_kind)
+    var_decl: (variable_declaration
+      id: (simple_identifier))
+    initializer: (string_literal
+      (string_content))))
+
+=====================
+Annotation with empty collection literal 
+======================
+
+@Annotation(
+    owner = "foo",
+    modules = []
+)
+const val BAZ = "baz"
+
+---
+
+(source_file
+  (property_declaration
+    modifiers: (modifiers
+      (annotation
+        (constructor_invocation
+          (user_type
+            (type_identifier))
+          (value_arguments
+            (value_argument
+              (simple_identifier)
+              (string_literal
+                (string_content)))
+            (value_argument
+              (simple_identifier)
+              (collection_literal)))))
+      (property_modifier))
+    (binding_pattern_kind)
+    var_decl: (variable_declaration
+      id: (simple_identifier))
+    initializer: (string_literal
+      (string_content))))      
