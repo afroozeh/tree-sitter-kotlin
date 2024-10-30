@@ -182,7 +182,6 @@ static bool scan_automatic_semicolon(TSLexer *lexer) {
     case '=':
     case '{':
     case '[':
-    case '(':
     case '?':
     case '|':
     case '&':

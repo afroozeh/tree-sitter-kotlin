@@ -50,7 +50,6 @@ const PREC = {
   BLOCK: 1,
   ARGUMENTS: 1,
   STRING_CONTENT: 1,
-  LAMBDA_LITERAL: 0,
   RETURN_OR_THROW: 0,
   COMMENT: 0
 };
@@ -88,12 +87,6 @@ module.exports = grammar({
     // "data", "inner" as class modifier or id
     [$.class_modifier, $.simple_identifier],
 
-    // ambiguity between prefix expressions and annotations before functions
-    [$._statement, $.prefix_expression],
-    [$._statement, $.prefix_expression, $.modifiers],
-    [$.prefix_expression, $.when_subject],
-    [$.prefix_expression, $.value_argument],
-
     // ambiguity between multiple user types and class property/function declarations
     [$.user_type],
     [$.user_type, $.anonymous_function],
@@ -125,7 +118,12 @@ module.exports = grammar({
 
     [$._simple_user_type],
 
-    [$.comparison_expression]
+    [$.comparison_expression],
+
+    [$.annotated_expression, $.modifiers],
+    [$.annotated_expression, $.when_subject],
+    [$.annotated_expression, $.value_argument],
+    [$.modifiers]
   ],
 
   externals: $ => [
@@ -370,7 +368,7 @@ module.exports = grammar({
 
     function_body: $ => choice($.block, seq("=", field('expression', $.expression))),
 
-    variable_declaration: $ => prec.left(PREC.VAR_DECL, seq(
+    variable_declaration: $ => prec(PREC.VAR_DECL, seq(
       // repeat($.annotation), TODO
       field('id', $.simple_identifier),
       optional(field('type', seq(":", $._type)))
@@ -538,21 +536,21 @@ module.exports = grammar({
     // ==========
 
     statements: $ => seq(
-      $._statement,
-      repeat(seq($._semi, $._statement)),
+      sep1($._statement, $._semi),
       optional($._semi),
     ),
 
     _statement: $ => choice(
       $._declaration,
-      seq(
-        repeat(choice($.label, $.annotation)),
-        choice(
-          $.assignment,
-          $._loop_statement,
-          $.expression
-        )
-      )
+      $.assignment,
+      $._loop_statement,
+      $.expression
+      // seq(
+      //   repeat(choice($.label, $.annotation)),
+      //   choice(
+
+      //   )
+      // )
     ),
 
     label: $ => token(seq(
@@ -627,6 +625,8 @@ module.exports = grammar({
       $.spread_expression,
       $.if_expression,
       $.jump_expression,
+      $.annotated_expression,
+      $.labeled_expression
     ),
 
     postfix_expression: $ => prec(PREC.POSTFIX, seq(field('expression', $.expression), field('operator', $.postfix_unary_operator))),
@@ -641,12 +641,18 @@ module.exports = grammar({
       ))
     )),
 
-    call_expression: $ => prec.right(seq(field('expression', $._primary_expression), 
+    call_expression: $ => seq(
+      field('expression', $._primary_expression), 
       optional($.type_arguments),
-      choice(
-        seq(optional(field('args', $.value_arguments)), field('lambda_arg', $.annotated_lambda)),
-        field('args', $.value_arguments)
-      ))),
+      $._call_arguments
+      ),
+
+    // Right precedence here to extend the call to the right, i.e., `with (s) { s }`
+    // should be parsed as a flat list of arguments. 
+    _call_arguments: $ => prec.right(choice(
+      seq(optional(field('args', $.value_arguments)), field('lambda_arg', $.annotated_lambda)),
+      field('args', $.value_arguments)
+    )),
     
     index_access_expression: $ => prec(PREC.INDEX, seq(
       field('expression', $.expression), 
@@ -657,9 +663,12 @@ module.exports = grammar({
       ']')
     ),
 
-    prefix_expression: $ => choice(
-      seq(choice($.annotation, $.label), field('expression', $.expression)),
-      prec(PREC.PREFIX, seq(field('op', $.prefix_unary_operator), field('expression', $.expression)))),
+    annotated_expression: $ => seq($.annotation, $.expression),
+
+    labeled_expression: $ => seq($.label, $.expression),
+
+    prefix_expression: $ => prec(PREC.PREFIX, 
+      seq(field('op', $.prefix_unary_operator), field('expression', $.expression))),
 
     as_expression: $ => prec(PREC.AS, seq($.expression, $._as_operator, $._type)),
 
@@ -828,12 +837,12 @@ module.exports = grammar({
       seq("$", alias($.simple_identifier, $.interpolated_identifier))
     ),
 
-    lambda_literal: $ => prec(PREC.LAMBDA_LITERAL, seq(
+    lambda_literal: $ => seq(
       "{",
       optional(seq(optional(field('parameters', $.lambda_parameters)), "->")),
       optional(field('body', $.statements)),
       "}"
-    )),
+    ),
 
     multi_variable_declaration: $ => seq(
       '(',
@@ -1004,7 +1013,7 @@ module.exports = grammar({
     // Modifiers
     // ==========
 
-    modifiers: $ => prec.left(repeat1(choice($.annotation, $._modifier))),
+    modifiers: $ => repeat1(choice($.annotation, $._modifier)),
 
     parameter_modifiers: $ => repeat1(choice($.annotation, $.parameter_modifier)),
 

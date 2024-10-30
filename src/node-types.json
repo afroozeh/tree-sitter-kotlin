@@ -8,6 +8,10 @@
         "named": true
       },
       {
+        "type": "annotated_expression",
+        "named": true
+      },
+      {
         "type": "anonymous_function",
         "named": true
       },
@@ -92,6 +96,10 @@
         "named": true
       },
       {
+        "type": "labeled_expression",
+        "named": true
+      },
+      {
         "type": "lambda_literal",
         "named": true
       },
@@ -173,6 +181,25 @@
       "multiple": true,
       "required": true,
       "types": [
+        {
+          "type": "expression",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "annotated_expression",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "annotation",
+          "named": true
+        },
         {
           "type": "expression",
           "named": true
@@ -1063,13 +1090,9 @@
     "named": true,
     "fields": {},
     "children": {
-      "multiple": true,
+      "multiple": false,
       "required": true,
       "types": [
-        {
-          "type": "annotation",
-          "named": true
-        },
         {
           "type": "assignment",
           "named": true
@@ -1100,10 +1123,6 @@
         },
         {
           "type": "getter",
-          "named": true
-        },
-        {
-          "type": "label",
           "named": true
         },
         {
@@ -2022,6 +2041,25 @@
     "fields": {}
   },
   {
+    "type": "labeled_expression",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "expression",
+          "named": true
+        },
+        {
+          "type": "label",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "lambda_literal",
     "named": true,
     "fields": {
@@ -2531,7 +2569,7 @@
       },
       "op": {
         "multiple": false,
-        "required": false,
+        "required": true,
         "types": [
           {
             "type": "prefix_unary_operator",
@@ -2539,20 +2577,6 @@
           }
         ]
       }
-    },
-    "children": {
-      "multiple": false,
-      "required": false,
-      "types": [
-        {
-          "type": "annotation",
-          "named": true
-        },
-        {
-          "type": "label",
-          "named": true
-        }
-      ]
     }
   },
   {
@@ -2849,10 +2873,6 @@
       "required": false,
       "types": [
         {
-          "type": "annotation",
-          "named": true
-        },
-        {
           "type": "assignment",
           "named": true
         },
@@ -2886,10 +2906,6 @@
         },
         {
           "type": "import_list",
-          "named": true
-        },
-        {
-          "type": "label",
           "named": true
         },
         {
@@ -2947,10 +2963,6 @@
       "required": true,
       "types": [
         {
-          "type": "annotation",
-          "named": true
-        },
-        {
           "type": "assignment",
           "named": true
         },
@@ -2976,10 +2988,6 @@
         },
         {
           "type": "getter",
-          "named": true
-        },
-        {
-          "type": "label",
           "named": true
         },
         {

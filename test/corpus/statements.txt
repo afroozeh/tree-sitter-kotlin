@@ -125,3 +125,37 @@ try {
               args: (value_arguments
                 (value_argument
                   (simple_identifier)))))))))
+
+================================================================================
+Parenthesized expression after function call
+================================================================================
+
+val foo = Foo()
+(bar as Bar).let { useFoo(foo) }
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (property_declaration
+    (binding_pattern_kind)
+    var_decl: (variable_declaration
+      id: (simple_identifier))
+    initializer: (call_expression
+      expression: (simple_identifier)
+      args: (value_arguments)))
+  (call_expression
+    expression: (dot_qualified_expression
+      receiver: (parenthesized_expression
+        (as_expression
+          (simple_identifier)
+          (user_type
+            (type_identifier))))
+      selector: (simple_identifier))
+    lambda_arg: (annotated_lambda
+      (lambda_literal
+        body: (statements
+          (call_expression
+            expression: (simple_identifier)
+            args: (value_arguments
+              (value_argument
+                (simple_identifier)))))))))
