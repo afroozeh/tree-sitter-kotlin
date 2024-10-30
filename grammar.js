@@ -75,10 +75,6 @@ module.exports = grammar({
   name: "kotlin",
 
   conflicts: $ => [
-    // Ambiguous when used in an explicit delegation expression,
-    // since the '{' could either be interpreted as the class body
-    // or as the anonymous function body. Consider the following sequence:
-
     // @Type(... could either be an annotation constructor invocation or an annotated expression
     [$.constructor_invocation, $._unescaped_annotation],
 
@@ -111,8 +107,6 @@ module.exports = grammar({
     [$.identifier],
 
     [$.expression, $.call_expression],
-
-    [$.object_declaration],
 
     [$._simple_user_type, $._primary_expression],
 
@@ -194,14 +188,14 @@ module.exports = grammar({
 
     top_level_object: $ => seq($._declaration, optional($._semi)),
 
-    type_alias: $ => seq(
+    type_alias: $ => prec.right(seq(
       optional(field('modifiers', $.modifiers)),
       "typealias",
       alias($.simple_identifier, $.type_identifier),
       optional($.type_parameters),
       "=",
       $._type
-    ),
+    )),
 
     _declaration: $ => choice(
       $.class_declaration,
@@ -224,7 +218,7 @@ module.exports = grammar({
     // Classes
     // ==========
 
-    class_declaration: $ => prec.left(seq(
+    class_declaration: $ => prec.right(seq(
       optional(field('modifiers', $.modifiers)),
       choice("class", seq(optional("fun"), "interface")),
       field('name', $.simple_identifier),
@@ -427,13 +421,13 @@ module.exports = grammar({
 
     parameter: $ => seq(field('name', $.simple_identifier), ":", field('type', $._type)),
 
-    object_declaration: $ => seq(
+    object_declaration: $ => prec.right(seq(
       optional(field('modifiers', $.modifiers)),
       "object",
       field('name', $.simple_identifier),
       optional(seq(":", $._delegation_specifiers)),
       optional(field('body', $.class_body))
-    ),
+    )),
 
     secondary_constructor: $ => seq(
       optional(field('modifiers', $.modifiers)),
@@ -545,12 +539,6 @@ module.exports = grammar({
       $.assignment,
       $._loop_statement,
       $.expression
-      // seq(
-      //   repeat(choice($.label, $.annotation)),
-      //   choice(
-
-      //   )
-      // )
     ),
 
     label: $ => token(seq(

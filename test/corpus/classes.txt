@@ -559,3 +559,26 @@ class A {
       (companion_object
         modifiers: (modifiers
           (visibility_modifier))))))
+
+
+================================================================================
+Explicit primary constructor
+================================================================================
+
+class Foo private constructor(a: Int) {
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (class_declaration
+    name: (simple_identifier)
+    (primary_constructor
+      modifiers: (modifiers
+        (visibility_modifier))
+      (class_parameters
+        (class_parameter
+          name: (simple_identifier)
+          type: (user_type
+            (type_identifier)))))
+    body: (class_body)))
