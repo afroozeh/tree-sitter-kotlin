@@ -10,11 +10,11 @@ something as A
 (source_file
   (as_expression
     (simple_identifier)
-    (user_type
+    type: (user_type
       (type_identifier)))
   (as_expression
     (simple_identifier)
-    (user_type
+    type: (user_type
       (type_identifier))))
 
 ================================================================================
@@ -28,7 +28,7 @@ something as Some.NestedType
 (source_file
   (as_expression
     (simple_identifier)
-    (user_type
+    type: (user_type
       (type_identifier)
       (type_identifier))))
 
@@ -43,7 +43,7 @@ somethingElse as A.Deeply.Nested.Type
 (source_file
   (as_expression
     (simple_identifier)
-    (user_type
+    type: (user_type
       (type_identifier)
       (type_identifier)
       (type_identifier)
@@ -60,7 +60,7 @@ something as Generic<*>
 (source_file
   (as_expression
     (simple_identifier)
-    (user_type
+    type: (user_type
       (type_identifier)
       (type_arguments
         (type_projection)))))
@@ -77,22 +77,22 @@ something as Generic<A, Type>
 (source_file
   (as_expression
     (simple_identifier)
-    (user_type
+    type: (user_type
       (type_identifier)
       (type_arguments
         (type_projection
-          (user_type
+          type: (user_type
             (type_identifier))))))
   (as_expression
     (simple_identifier)
-    (user_type
+    type: (user_type
       (type_identifier)
       (type_arguments
         (type_projection
-          (user_type
+          type: (user_type
             (type_identifier)))
         (type_projection
-          (user_type
+          type: (user_type
             (type_identifier)))))))
 
 ================================================================================
@@ -109,15 +109,15 @@ consumer as (Int) -> Unit
     (simple_identifier)
     (function_type
       (function_type_parameters)
-      (user_type
+      type: (user_type
         (type_identifier))))
   (as_expression
     (simple_identifier)
     (function_type
       (function_type_parameters
-        (user_type
+        type: (user_type
           (type_identifier)))
-      (user_type
+      type: (user_type
         (type_identifier)))))
 
 ================================================================================
@@ -134,27 +134,27 @@ b as (Nested.Type, (Int)) -> Unit
     (simple_identifier)
     (function_type
       (function_type_parameters
-        (user_type
+        type: (user_type
           (type_identifier))
-        (user_type
+        type: (user_type
           (type_identifier)
           (type_arguments
             (type_projection)))
-        (user_type
+        type: (user_type
           (type_identifier)))
-      (user_type
+      type: (user_type
         (type_identifier))))
   (as_expression
     (simple_identifier)
     (function_type
       (function_type_parameters
-        (user_type
+        type: (user_type
           (type_identifier)
           (type_identifier))
         (parenthesized_type
-          (user_type
+          type: (user_type
             (type_identifier))))
-      (user_type
+      type: (user_type
         (type_identifier)))))
 
 ================================================================================
@@ -178,7 +178,7 @@ a as (first: A, second: B) -> Unit
           name: (simple_identifier)
           type: (user_type
             (type_identifier))))
-      (user_type
+      type: (user_type
         (type_identifier)))))
 
 ================================================================================
@@ -196,7 +196,7 @@ a as T.() -> Unit
       (user_type
         (type_identifier))
       (function_type_parameters)
-      (user_type
+      type: (user_type
         (type_identifier)))))
 
 ================================================================================
@@ -218,7 +218,7 @@ var customRequest: (RequestConfig.Builder.() -> RequestConfig.Builder)
             (type_identifier)
             (type_identifier))
           (function_type_parameters)
-          (user_type
+          type: (user_type
             (type_identifier)
             (type_identifier)))))))
 
@@ -280,11 +280,11 @@ private typealias T<E> = Foo<E>
     (type_parameters
       (type_parameter
         (type_identifier)))
-    (user_type
+    type: (user_type
       (type_identifier)
       (type_arguments
         (type_projection
-          (user_type
+          type: (user_type
             (type_identifier)))))))
 
 ================================================================================

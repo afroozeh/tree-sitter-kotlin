@@ -45,7 +45,7 @@ const PREC = {
   VAR_DECL: 3,
   GENERIC: 3,
   SPREAD: 2,
-  SIMPLE_USER_TYPE: 2,
+  TYPE_REFERENCE: 1,
   ASSIGNMENT: 1,
   BLOCK: 1,
   ARGUMENTS: 1,
@@ -339,8 +339,8 @@ module.exports = grammar({
       optional(seq("=", field('initializer', $.expression)))
     ),
 
-    _receiver_type: $ => seq(
-      optional($.type_modifiers),
+    receiver_type: $ => seq(
+      optional(field('modifiers', $.type_modifiers)),
       choice(
         $._type_reference,
         $.parenthesized_type,
@@ -352,7 +352,7 @@ module.exports = grammar({
       optional(field('modifiers', $.modifiers)),
       "fun",
       optional($.type_parameters),
-      optional(seq(field('receiver_type', $._receiver_type), optional('.'))),
+      optional(seq(field('receiver_type', $.receiver_type), optional('.'))),
       field('name', $.simple_identifier),
       field('parameters', $.function_value_parameters),
       optional(seq(":", field('type', $._type))),
@@ -372,7 +372,7 @@ module.exports = grammar({
       optional(field('modifiers', $.modifiers)),
       $.binding_pattern_kind,
       optional(field('type_parameters', $.type_parameters)),
-      optional(seq($._receiver_type, optional('.'))),
+      optional(seq(field('receiver_type', $.receiver_type), '.')),
       field('var_decl', choice($.variable_declaration, $.multi_variable_declaration)),
       optional(field('type_constraints', $.type_constraints)),
       optional(choice(
@@ -467,8 +467,9 @@ module.exports = grammar({
       )
     ),
 
-    _type_reference: $ => prec.left(1, choice(
-      $.user_type,
+    // Give type reference a higher precedence to resolve conflict with parenthesized expression
+    _type_reference: $ => prec(PREC.TYPE_REFERENCE, choice(
+      field('type', $.user_type),
       "dynamic"
     )),
 

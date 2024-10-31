@@ -41,15 +41,15 @@ fun <T: Int> bar(foo: Int): T {}
     (type_parameters
       (type_parameter
         (type_identifier)
-        (user_type
+        type: (user_type
           (type_identifier))))
     name: (simple_identifier)
     parameters: (function_value_parameters
       (function_value_parameter
         parameter: (parameter
-                      name: (simple_identifier)
-                      type: (user_type
-                        (type_identifier)))))
+          name: (simple_identifier)
+          type: (user_type
+            (type_identifier)))))
     type: (user_type
       (type_identifier))
     body: (function_body
@@ -72,9 +72,10 @@ fun sum(a: Int, b: Int) = a + b
       (function_value_parameter
         parameter: (parameter
           name: (simple_identifier)
-                  type: (user_type
-                          (type_identifier)
-                          (type_arguments (type_projection (user_type (type_identifier))))))))
+            type: (user_type
+              (type_identifier)
+              (type_arguments (type_projection 
+                type: (user_type (type_identifier))))))))
     body: (function_body
       (block)))
   (function_declaration
@@ -82,12 +83,12 @@ fun sum(a: Int, b: Int) = a + b
     parameters: (function_value_parameters
       (function_value_parameter
         parameter: (parameter
-                     name: (simple_identifier)
-                     type: (user_type (type_identifier))))
+          name: (simple_identifier)
+          type: (user_type (type_identifier))))
       (function_value_parameter    
         parameter: (parameter
-                     name: (simple_identifier)
-                     type: (user_type (type_identifier)))))
+          name: (simple_identifier)
+          type: (user_type (type_identifier)))))
     body: (function_body
       expression: (additive_expression
         (simple_identifier)
@@ -248,7 +249,7 @@ val anon = fun(): Int
 (source_file
   (anonymous_function
     (function_value_parameters)
-    (user_type
+    type: (user_type
       (type_identifier)))
   (property_declaration
     (binding_pattern_kind)
@@ -256,7 +257,7 @@ val anon = fun(): Int
       id: (simple_identifier))
     initializer: (anonymous_function
       (function_value_parameters)
-      (user_type
+      type: (user_type
         (type_identifier)))))
 
 ==================
@@ -372,8 +373,9 @@ fun String.myLength(): Int {
 
 (source_file
   (function_declaration
-    receiver_type: (user_type
-      (type_identifier))
+    receiver_type: (receiver_type
+      type: (user_type
+        (type_identifier)))
     name: (simple_identifier)
     parameters: (function_value_parameters)
     type: (user_type

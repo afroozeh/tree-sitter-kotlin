@@ -63,7 +63,7 @@ fun main(){
                 (type_identifier)
                 (type_arguments
                   (type_projection
-                    (user_type
+                    type: (user_type
                       (type_identifier)))))))
           (assignment
             left: (index_access_expression

@@ -234,7 +234,7 @@ class Something {
         (variable_declaration
           id: (simple_identifier)
           type: (nullable_type
-            (user_type
+            type: (user_type
               (type_identifier)))))
       (property_declaration
         (binding_pattern_kind)
@@ -512,7 +512,7 @@ fun interface Authenticator {
             parameter: (parameter
               name: (simple_identifier)
               type: (nullable_type
-                (user_type
+                type: (user_type
                   (type_identifier)))))
           (function_value_parameter
             parameter: (parameter
@@ -520,7 +520,7 @@ fun interface Authenticator {
               type: (user_type
                 (type_identifier)))))
         type: (nullable_type
-          (user_type
+          type: (user_type
             (type_identifier)))))))
 
 ================================================================================

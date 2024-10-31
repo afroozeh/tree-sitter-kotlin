@@ -1232,15 +1232,19 @@
         }
       ]
     },
-    "_receiver_type": {
+    "receiver_type": {
       "type": "SEQ",
       "members": [
         {
           "type": "CHOICE",
           "members": [
             {
-              "type": "SYMBOL",
-              "name": "type_modifiers"
+              "type": "FIELD",
+              "name": "modifiers",
+              "content": {
+                "type": "SYMBOL",
+                "name": "type_modifiers"
+              }
             },
             {
               "type": "BLANK"
@@ -1315,7 +1319,7 @@
                     "name": "receiver_type",
                     "content": {
                       "type": "SYMBOL",
-                      "name": "_receiver_type"
+                      "name": "receiver_type"
                     }
                   },
                   {
@@ -1526,20 +1530,16 @@
                 "type": "SEQ",
                 "members": [
                   {
-                    "type": "SYMBOL",
-                    "name": "_receiver_type"
+                    "type": "FIELD",
+                    "name": "receiver_type",
+                    "content": {
+                      "type": "SYMBOL",
+                      "name": "receiver_type"
+                    }
                   },
                   {
-                    "type": "CHOICE",
-                    "members": [
-                      {
-                        "type": "STRING",
-                        "value": "."
-                      },
-                      {
-                        "type": "BLANK"
-                      }
-                    ]
+                    "type": "STRING",
+                    "value": "."
                   }
                 ]
               },
@@ -2247,14 +2247,18 @@
       ]
     },
     "_type_reference": {
-      "type": "PREC_LEFT",
+      "type": "PREC",
       "value": 1,
       "content": {
         "type": "CHOICE",
         "members": [
           {
-            "type": "SYMBOL",
-            "name": "user_type"
+            "type": "FIELD",
+            "name": "type",
+            "content": {
+              "type": "SYMBOL",
+              "name": "user_type"
+            }
           },
           {
             "type": "STRING",

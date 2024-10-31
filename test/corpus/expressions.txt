@@ -128,7 +128,7 @@ when (this) {
     (when_entry
       (when_condition
         (type_test
-          (user_type
+          type: (user_type
             (type_identifier)
             (type_arguments
               (type_projection)))))
@@ -147,8 +147,9 @@ val MyDate.s: String get() = "hello"
 (source_file
   (property_declaration
     (binding_pattern_kind)
-    (user_type
-      (type_identifier))
+    receiver_type: (receiver_type
+      type: (user_type
+      (type_identifier)))
     var_decl: (variable_declaration
       id: (simple_identifier)
       type: (user_type
@@ -222,7 +223,7 @@ foo<Int>(1)
     expression: (simple_identifier)
     (type_arguments
       (type_projection
-        (user_type
+        type: (user_type
           (type_identifier))))
     args: (value_arguments
       (value_argument
@@ -233,7 +234,7 @@ foo<Int>(1)
     expression: (simple_identifier)
     (type_arguments
       (type_projection
-        (user_type
+        type: (user_type
           (type_identifier))))
     args: (value_arguments
       (value_argument
@@ -285,7 +286,7 @@ val a = a<2>(3)
       expression: (simple_identifier)
       (type_arguments
         (type_projection
-          (user_type
+          type: (user_type
             (type_identifier))))
       args: (value_arguments
         (value_argument
@@ -533,14 +534,14 @@ class Square() : Rectangle(), Polygon {
               (call_expression
                 expression: (dot_qualified_expression
                   receiver: (super_expression
-                    (user_type
+                    type: (user_type
                       (type_identifier)))
                   selector: (simple_identifier))
                 args: (value_arguments))
               (call_expression
                 expression: (dot_qualified_expression
                   receiver: (super_expression
-                    (user_type
+                    type: (user_type
                       (type_identifier))
                     (type_identifier))
                   selector: (simple_identifier))
@@ -999,11 +1000,11 @@ fun f(l: MutableList<Int>?) {
         parameter: (parameter
           name: (simple_identifier)
           type: (nullable_type
-            (user_type
+            type: (user_type
               (type_identifier)
               (type_arguments
                 (type_projection
-                  (user_type
+                  type: (user_type
                     (type_identifier)))))))))
     body: (function_body
       (block
@@ -1030,5 +1031,5 @@ BufferedChannel<*>::registerSelectForSend as RegistrationFunction
         (type_arguments
           (type_projection)))
       (simple_identifier))
-    (user_type
+    type: (user_type
       (type_identifier))))

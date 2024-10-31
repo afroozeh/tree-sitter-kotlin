@@ -45,7 +45,7 @@ Getters
 
 val x get () = 2
 
-val ty x get () = 3
+val Type.x get () = 3
 
 --------------------------------------------------------------------------------
 
@@ -59,8 +59,9 @@ val ty x get () = 3
         expression: (integer_literal))))
   (property_declaration
     (binding_pattern_kind)
-    (user_type
-      (type_identifier))
+    receiver_type: (receiver_type
+      type: (user_type
+        (type_identifier)))
     var_decl: (variable_declaration
       id: (simple_identifier))
     (getter
@@ -148,7 +149,7 @@ val foo = Foo()
       receiver: (parenthesized_expression
         (as_expression
           (simple_identifier)
-          (user_type
+          type: (user_type
             (type_identifier))))
       selector: (simple_identifier))
     lambda_arg: (annotated_lambda
