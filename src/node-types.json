@@ -1603,6 +1603,32 @@
           }
         ]
       },
+      "receiver_type": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "dynamic",
+            "named": false
+          },
+          {
+            "type": "nullable_type",
+            "named": true
+          },
+          {
+            "type": "parenthesized_type",
+            "named": true
+          },
+          {
+            "type": "type_modifiers",
+            "named": true
+          },
+          {
+            "type": "user_type",
+            "named": true
+          }
+        ]
+      },
       "type": {
         "multiple": true,
         "required": false,
@@ -1643,27 +1669,11 @@
       "required": false,
       "types": [
         {
-          "type": "nullable_type",
-          "named": true
-        },
-        {
-          "type": "parenthesized_type",
-          "named": true
-        },
-        {
           "type": "type_constraints",
           "named": true
         },
         {
-          "type": "type_modifiers",
-          "named": true
-        },
-        {
           "type": "type_parameters",
-          "named": true
-        },
-        {
-          "type": "user_type",
           "named": true
         }
       ]

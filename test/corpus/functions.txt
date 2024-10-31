@@ -359,3 +359,29 @@ fun f(x: Int = 1) {
         initializer: (integer_literal)))
     body: (function_body
       (block))))
+
+==================
+Extension functions
+==================
+
+fun String.myLength(): Int {
+  return this.length
+}
+
+---
+
+(source_file
+  (function_declaration
+    receiver_type: (user_type
+      (type_identifier))
+    name: (simple_identifier)
+    parameters: (function_value_parameters)
+    type: (user_type
+      (type_identifier))
+    body: (function_body
+      (block
+        (statements
+          (jump_expression
+            (dot_qualified_expression
+              receiver: (this_expression)
+              selector: (simple_identifier))))))))
