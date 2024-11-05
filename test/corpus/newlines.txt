@@ -8,15 +8,16 @@ bar.foo()
 --------------------------------------------------------------------------------
 
 (source_file
-  (call_expression
-    expression: (dot_qualified_expression
-      receiver: (call_expression
-        expression: (dot_qualified_expression
-          receiver: (simple_identifier)
-          selector: (simple_identifier))
-        args: (value_arguments))
-      selector: (simple_identifier))
-    args: (value_arguments)))
+  (statement
+    (call_expression
+      expression: (dot_qualified_expression
+        receiver: (call_expression
+          expression: (dot_qualified_expression
+            receiver: (simple_identifier)
+            selector: (simple_identifier))
+          args: (value_arguments))
+        selector: (simple_identifier))
+      args: (value_arguments))))
 
 ================================================================================
 Eq after newline
@@ -52,7 +53,7 @@ fun foo()  {
     parameters: (function_value_parameters)
     body: (function_body
       (block
-        (statements
+        (statement
           (property_declaration
             (binding_pattern_kind)
             var_decl: (variable_declaration
@@ -78,7 +79,7 @@ fun foo():String
       (type_identifier))
     body: (function_body
       (block
-        (statements
+        (statement
           (jump_expression
             (string_literal
               (string_content))))))))
@@ -120,7 +121,7 @@ fun foo() {
     parameters: (function_value_parameters)
     body: (function_body
       (block
-        (statements
+        (statement
           (property_declaration
             (binding_pattern_kind)
             var_decl: (variable_declaration
@@ -185,13 +186,14 @@ foo(1,
 (source_file
   (line_comment)
   (line_comment)
-  (call_expression
-    expression: (simple_identifier)
-    args: (value_arguments
-      (value_argument
-        (integer_literal))
-      (value_argument
-        (integer_literal)))))
+  (statement
+    (call_expression
+      expression: (simple_identifier)
+      args: (value_arguments
+        (value_argument
+          (integer_literal))
+        (value_argument
+          (integer_literal))))))
 
 ================================================================================
 Else after newline
@@ -203,14 +205,13 @@ else boo()
 --------------------------------------------------------------------------------
 
 (source_file
-  (if_expression
-    condition: (prefix_expression
-      op: (prefix_unary_operator)
-      expression: (simple_identifier))
-    consequence: (control_structure_body
-      (integer_literal))
-    alternative: (control_structure_body
-      (call_expression
+  (statement
+    (if_expression
+      condition: (prefix_expression
+        op: (prefix_unary_operator)
+        expression: (simple_identifier))
+      consequence: (integer_literal)
+      alternative: (call_expression
         expression: (simple_identifier)
         args: (value_arguments)))))
 
@@ -223,14 +224,12 @@ if (!foo) 3 else boo()
 --------------------------------------------------------------------------------
 
 (source_file
-  (if_expression
-    condition: (prefix_expression
-      op: (prefix_unary_operator)
-      expression: (simple_identifier))
-    consequence: (control_structure_body
-      (integer_literal))
-    alternative:
-      (control_structure_body
-        (call_expression
-          expression: (simple_identifier)
-            args: (value_arguments)))))
+  (statement
+    (if_expression
+      condition: (prefix_expression
+        op: (prefix_unary_operator)
+        expression: (simple_identifier))
+      consequence: (integer_literal)
+      alternative: (call_expression
+        expression: (simple_identifier)
+        args: (value_arguments)))))

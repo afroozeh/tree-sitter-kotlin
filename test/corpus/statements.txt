@@ -7,12 +7,13 @@ for (value in values) {}
 --------------------------------------------------------------------------------
 
 (source_file
-  (for_statement
-    var_decl: (variable_declaration
-               id: (simple_identifier))
-    expression: (simple_identifier)
-    body: (control_structure_body
-      (block))))
+  (statement
+    (for_statement
+      var_decl: (variable_declaration
+                id: (simple_identifier))
+      expression: (simple_identifier)
+      body: (control_structure_body
+        (block)))))
 
 ================================================================================
 Statements separated by semicolon
@@ -32,12 +33,13 @@ override fun isDisposed(): Boolean { expectUnreached();  return false }
       (type_identifier))
     body: (function_body
       (block
-        (statements
+        (statement
           (call_expression
             expression: (simple_identifier)
-              args: (value_arguments))
-          (jump_expression
-            (boolean_literal)))))))
+              args: (value_arguments)))
+          (statement
+            (jump_expression
+              (boolean_literal)))))))
 
 ================================================================================
 Getters
@@ -83,7 +85,7 @@ fun foo() {
     parameters: (function_value_parameters)
     body: (function_body
       (block
-        (statements
+        (statement 
           (property_declaration
             (binding_pattern_kind)
             var_decl: (multi_variable_declaration
@@ -109,23 +111,24 @@ try {
 --------------------------------------------------------------------------------
 
  (source_file
-  (try_expression
-    (block
-      (statements
-        (call_expression
-          expression: (simple_identifier)
-            args: (value_arguments))))
-    (catch_block
-      name: (simple_identifier)
-      type: (user_type
-        (type_identifier))
-      body: (block
-        (statements
+  (statement
+    (try_expression
+      (block
+        (statement
           (call_expression
             expression: (simple_identifier)
-              args: (value_arguments
-                (value_argument
-                  (simple_identifier)))))))))
+              args: (value_arguments))))
+      (catch_block
+        name: (simple_identifier)
+        type: (user_type
+          (type_identifier))
+        body: (block
+          (statement
+            (call_expression
+              expression: (simple_identifier)
+                args: (value_arguments
+                  (value_argument
+                    (simple_identifier))))))))))
 
 ================================================================================
 Parenthesized expression after function call
@@ -144,19 +147,21 @@ val foo = Foo()
     initializer: (call_expression
       expression: (simple_identifier)
       args: (value_arguments)))
-  (call_expression
-    expression: (dot_qualified_expression
-      receiver: (parenthesized_expression
-        (as_expression
-          (simple_identifier)
-          type: (user_type
-            (type_identifier))))
-      selector: (simple_identifier))
-    lambda_arg: (annotated_lambda
-      (lambda_literal
-        body: (statements
-          (call_expression
-            expression: (simple_identifier)
-            args: (value_arguments
-              (value_argument
-                (simple_identifier)))))))))
+  (statement    
+    (call_expression
+      expression: (dot_qualified_expression
+        receiver: (parenthesized_expression
+          (as_expression
+            (simple_identifier)
+            type: (user_type
+              (type_identifier))))
+        selector: (simple_identifier))
+      lambda_arg: (annotated_lambda
+        (lambda_literal
+          body: (lambda_body
+            (statement
+              (call_expression
+                expression: (simple_identifier)
+                args: (value_arguments
+                  (value_argument
+                    (simple_identifier)))))))))))

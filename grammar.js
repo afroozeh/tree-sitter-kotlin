@@ -192,11 +192,11 @@ module.exports = grammar({
     _top_level_object: $ => seq($._declaration, optional($._semi)),
 
     _top_level_statement: $ => seq(
-      choice(
+      alias(choice(
         $.assignment,
         $._loop_statement,
         $.expression
-      ), 
+      ), $.statement), 
       $._semi,
     ),
 
@@ -542,12 +542,12 @@ module.exports = grammar({
     // Statements
     // ==========
 
-    statements: $ => seq(
-      sep1($._statement, $._semi),
+    _statements: $ => seq(
+      sep1($.statement, $._semi),
       optional($._semi),
     ),
 
-    _statement: $ => choice(
+    statement: $ => choice(
       $._declaration,
       $.assignment,
       $._loop_statement,
@@ -559,9 +559,9 @@ module.exports = grammar({
       "@"
     )),
 
-    control_structure_body: $ => choice($.block, $._statement),
+    control_structure_body: $ => choice($.block, $.statement),
 
-    block: $ => prec(PREC.BLOCK, seq("{", optional($.statements), "}")),
+    block: $ => prec(PREC.BLOCK, seq("{", optional($._statements), "}")),
 
     _loop_statement: $ => choice(
       $.for_statement,
@@ -841,7 +841,7 @@ module.exports = grammar({
     lambda_literal: $ => seq(
       "{",
       optional(seq(optional(field('parameters', $.lambda_parameters)), "->")),
-      optional(field('body', $.statements)),
+      optional(field('body', alias($._statements, $.lambda_body))),
       "}"
     ),
 
@@ -892,12 +892,12 @@ module.exports = grammar({
       "if",
       "(", field('condition', $.expression), ")",
       choice(
-        field('consequence', $.control_structure_body),
+        field('consequence', choice($.expression, $.block)),
         ";"
       ),
       optional(seq(
         "else",
-        choice(field('alternative', $.control_structure_body), ";")
+        choice(field('alternative', choice($.expression, $.block), ";"))
       )),
     )),
 

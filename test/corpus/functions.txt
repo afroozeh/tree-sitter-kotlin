@@ -134,7 +134,7 @@ fun foo(p0: Int): Long {
       (type_identifier))
     body: (function_body
       (block
-        (statements
+        (statement
           (jump_expression
             (call_expression
               expression: (dot_qualified_expression
@@ -178,17 +178,18 @@ fun test() {
     parameters: (function_value_parameters)
     body: (function_body
       (block
-        (statements
+        (statement
           (assignment
             left: (simple_identifier)
-            right: (boolean_literal))
-          (call_expression
-            expression: (simple_identifier)
-            args: (value_arguments
-              (value_argument
-                (simple_identifier))
-              (value_argument
-                (simple_identifier)))))))))
+            right: (boolean_literal)))
+          (statement
+            (call_expression
+              expression: (simple_identifier)
+              args: (value_arguments
+                (value_argument
+                  (simple_identifier))
+                (value_argument
+                  (simple_identifier)))))))))
 
 ==================
 Anonymous function
@@ -200,8 +201,9 @@ val anon = fun()
 ---
 
 (source_file
-  (anonymous_function
-  (function_value_parameters))
+  (statement
+    (anonymous_function
+      (function_value_parameters)))
   (property_declaration
     (binding_pattern_kind)
     var_decl: (variable_declaration
@@ -218,13 +220,14 @@ val anon = fun(x: Int)
 ---
 
 (source_file
-  (anonymous_function
-  (function_value_parameters
-    (function_value_parameter
-      parameter: (parameter
-                   name: (simple_identifier)
-                   type: (user_type
-                           (type_identifier))))))
+  (statement
+    (anonymous_function
+      (function_value_parameters
+        (function_value_parameter
+          parameter: (parameter
+            name: (simple_identifier)
+            type: (user_type
+              (type_identifier)))))))
   (property_declaration
     (binding_pattern_kind)
     var_decl: (variable_declaration
@@ -247,10 +250,11 @@ val anon = fun(): Int
 ---
 
 (source_file
-  (anonymous_function
-    (function_value_parameters)
-    type: (user_type
-      (type_identifier)))
+  (statement
+    (anonymous_function
+      (function_value_parameters)
+      type: (user_type
+        (type_identifier))))
   (property_declaration
     (binding_pattern_kind)
     var_decl: (variable_declaration
@@ -272,20 +276,22 @@ val anon = fun() { assert(true) }
 ---
 
 (source_file
-  (anonymous_function
-    (function_value_parameters)
-    (function_body
-      expression: (boolean_literal)))
-  (anonymous_function
-    (function_value_parameters)
-    (function_body
-      (block
-        (statements
-          (call_expression
-            expression: (simple_identifier)
-            args: (value_arguments
-              (value_argument
-                (boolean_literal))))))))
+  (statement
+    (anonymous_function
+      (function_value_parameters)
+      (function_body
+        expression: (boolean_literal))))
+  (statement
+    (anonymous_function
+      (function_value_parameters)
+      (function_body
+        (block
+          (statement
+            (call_expression
+              expression: (simple_identifier)
+              args: (value_arguments
+                (value_argument
+                  (boolean_literal)))))))))
   (property_declaration
     (binding_pattern_kind)
     var_decl: (variable_declaration
@@ -302,7 +308,7 @@ val anon = fun() { assert(true) }
       (function_value_parameters)
       (function_body
         (block
-          (statements
+          (statement
             (call_expression
               expression: (simple_identifier)
               args: (value_arguments
@@ -382,7 +388,7 @@ fun String.myLength(): Int {
       (type_identifier))
     body: (function_body
       (block
-        (statements
+        (statement
           (jump_expression
             (dot_qualified_expression
               receiver: (this_expression)

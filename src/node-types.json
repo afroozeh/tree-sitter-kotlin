@@ -450,11 +450,11 @@
     "named": true,
     "fields": {},
     "children": {
-      "multiple": false,
+      "multiple": true,
       "required": false,
       "types": [
         {
-          "type": "statements",
+          "type": "statement",
           "named": true
         }
       ]
@@ -1115,55 +1115,11 @@
       "required": true,
       "types": [
         {
-          "type": "assignment",
-          "named": true
-        },
-        {
           "type": "block",
           "named": true
         },
         {
-          "type": "class_declaration",
-          "named": true
-        },
-        {
-          "type": "do_while_statement",
-          "named": true
-        },
-        {
-          "type": "expression",
-          "named": true
-        },
-        {
-          "type": "for_statement",
-          "named": true
-        },
-        {
-          "type": "function_declaration",
-          "named": true
-        },
-        {
-          "type": "getter",
-          "named": true
-        },
-        {
-          "type": "object_declaration",
-          "named": true
-        },
-        {
-          "type": "property_declaration",
-          "named": true
-        },
-        {
-          "type": "setter",
-          "named": true
-        },
-        {
-          "type": "type_alias",
-          "named": true
-        },
-        {
-          "type": "while_statement",
+          "type": "statement",
           "named": true
         }
       ]
@@ -1916,7 +1872,11 @@
         "required": false,
         "types": [
           {
-            "type": "control_structure_body",
+            "type": "block",
+            "named": true
+          },
+          {
+            "type": "expression",
             "named": true
           }
         ]
@@ -1936,7 +1896,11 @@
         "required": false,
         "types": [
           {
-            "type": "control_structure_body",
+            "type": "block",
+            "named": true
+          },
+          {
+            "type": "expression",
             "named": true
           }
         ]
@@ -2099,6 +2063,21 @@
     }
   },
   {
+    "type": "lambda_body",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "statement",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "lambda_literal",
     "named": true,
     "fields": {
@@ -2107,7 +2086,7 @@
         "required": false,
         "types": [
           {
-            "type": "statements",
+            "type": "lambda_body",
             "named": true
           }
         ]
@@ -2973,27 +2952,11 @@
       "required": false,
       "types": [
         {
-          "type": "assignment",
-          "named": true
-        },
-        {
           "type": "class_declaration",
           "named": true
         },
         {
-          "type": "do_while_statement",
-          "named": true
-        },
-        {
-          "type": "expression",
-          "named": true
-        },
-        {
           "type": "file_annotation",
-          "named": true
-        },
-        {
-          "type": "for_statement",
           "named": true
         },
         {
@@ -3029,11 +2992,11 @@
           "named": true
         },
         {
-          "type": "type_alias",
+          "type": "statement",
           "named": true
         },
         {
-          "type": "while_statement",
+          "type": "type_alias",
           "named": true
         }
       ]
@@ -3055,12 +3018,75 @@
     }
   },
   {
-    "type": "statements",
+    "type": "statement",
     "named": true,
-    "fields": {},
+    "fields": {
+      "left": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "dot_qualified_expression",
+            "named": true
+          },
+          {
+            "type": "index_access_expression",
+            "named": true
+          },
+          {
+            "type": "postfix_expression",
+            "named": true
+          },
+          {
+            "type": "simple_identifier",
+            "named": true
+          }
+        ]
+      },
+      "op": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "%=",
+            "named": false
+          },
+          {
+            "type": "*=",
+            "named": false
+          },
+          {
+            "type": "+=",
+            "named": false
+          },
+          {
+            "type": "-=",
+            "named": false
+          },
+          {
+            "type": "/=",
+            "named": false
+          },
+          {
+            "type": "=",
+            "named": false
+          }
+        ]
+      },
+      "right": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "expression",
+            "named": true
+          }
+        ]
+      }
+    },
     "children": {
-      "multiple": true,
-      "required": true,
+      "multiple": false,
+      "required": false,
       "types": [
         {
           "type": "assignment",
