@@ -7,7 +7,8 @@ helloWorld
 --------------------------------------------------------------------------------
 
 (source_file
-  (simple_identifier))
+  (statement
+    (simple_identifier)))
 
 ================================================================================
 Unicode identifiers
@@ -18,7 +19,8 @@ Unicode identifiers
 --------------------------------------------------------------------------------
 
 (source_file
-  (simple_identifier))
+  (statement
+    (simple_identifier)))
 
 ================================================================================
 Boolean literals
@@ -30,8 +32,10 @@ false
 --------------------------------------------------------------------------------
 
 (source_file
-  (boolean_literal)
-  (boolean_literal))
+  (statement
+    (boolean_literal))
+  (statement  
+    (boolean_literal)))
 
 ================================================================================
 String literals
@@ -48,18 +52,22 @@ string.
 --------------------------------------------------------------------------------
 
 (source_file
-  (string_literal
-    (string_content))
-  (string_literal
-    (string_content)
-    (string_content)
-    (string_content))
-  (string_literal
-    (string_content)
-    (string_content))
-  (string_literal
-    (string_content)
-    (string_content)))
+  (statement
+    (string_literal
+      (string_content)))
+  (statement
+    (string_literal
+      (string_content)
+      (string_content)
+      (string_content)))
+  (statement    
+    (string_literal
+      (string_content)
+      (string_content)))
+  (statement    
+    (string_literal
+      (string_content)
+      (string_content))))
 
 ================================================================================
 String literal with lots of repeated quotes
@@ -71,13 +79,14 @@ There's a lot of ""quotations"". Even at the "end""""
 --------------------------------------------------------------------------------
 
 (source_file
-  (string_literal
-    (string_content)
-    (string_content)
-    (string_content)
-    (string_content)
-    (string_content)
-    (string_content)))
+  (statement
+    (string_literal
+      (string_content)
+      (string_content)
+      (string_content)
+      (string_content)
+      (string_content)
+      (string_content))))
 
 ================================================================================
 String interpolation
@@ -93,24 +102,27 @@ ${"""string interpolation"""} $literal
 --------------------------------------------------------------------------------
 
 (source_file
-  (string_literal
+  (statement
+    (string_literal
+      (string_content)
+      (interpolated_identifier)
+      (string_content)))
+  (statement    
+    (string_literal
+      (string_content)
+      (interpolated_expression
+        (string_literal
+          (string_content)))
+      (string_content)))
+  (statement    
+    (string_literal
+      (string_content)
+      (interpolated_expression
+        (string_literal
+          (string_content)))
     (string_content)
     (interpolated_identifier)
-    (string_content))
-  (string_literal
-    (string_content)
-    (interpolated_expression
-      (string_literal
-        (string_content)))
-    (string_content))
-  (string_literal
-    (string_content)
-    (interpolated_expression
-      (string_literal
-        (string_content)))
-    (string_content)
-    (interpolated_identifier)
-    (string_content)))
+    (string_content))))
 
 ================================================================================
 More string interpolation
@@ -125,17 +137,22 @@ More string interpolation
 --------------------------------------------------------------------------------
 
 (source_file
-  (string_literal
-    (string_content))
-  (string_literal
-    (string_content))
-  (string_literal
-    (string_content))
-  (string_literal
-    (string_content)
-    (string_content))
-  (string_literal
-    (string_content)))
+  (statement
+    (string_literal
+      (string_content)))
+  (statement    
+    (string_literal
+      (string_content)))
+  (statement    
+    (string_literal
+      (string_content)))
+  (statement    
+    (string_literal
+      (string_content)
+      (string_content)))
+  (statement    
+    (string_literal
+      (string_content))))
 
 ================================================================================
 Integer literals
@@ -149,10 +166,14 @@ Integer literals
 --------------------------------------------------------------------------------
 
 (source_file
-  (integer_literal)
-  (integer_literal)
-  (integer_literal)
-  (integer_literal))
+  (statement
+    (integer_literal))
+  (statement
+    (integer_literal))
+  (statement  
+    (integer_literal))
+  (statement  
+    (integer_literal)))
 
 ================================================================================
 Real literals
@@ -167,15 +188,20 @@ Real literals
 --------------------------------------------------------------------------------
 
 (source_file
-  (real_literal)
-  (prefix_expression
-    op: (prefix_unary_operator)
-    expression: (real_literal))
-  (real_literal)
-  (real_literal)
-  (prefix_expression
-    op: (prefix_unary_operator)
-    expression: (real_literal)))
+  (statement
+    (real_literal))
+  (statement
+    (prefix_expression
+      op: (prefix_unary_operator)
+      expression: (real_literal)))
+  (statement
+    (real_literal))
+  (statement  
+    (real_literal))
+  (statement  
+    (prefix_expression
+      op: (prefix_unary_operator)
+      expression: (real_literal))))
 
 ================================================================================
 Unicode literals
@@ -186,19 +212,20 @@ assertEquals("\u214E\uA7B5\u2CEF", "\u2132\uA7B4\u2CEF".lowercase())
 --------------------------------------------------------------------------------
 
 (source_file
-  (call_expression
-    expression: (simple_identifier)
-    args: (value_arguments
-      (value_argument
-        (string_literal
-          (string_content)))
-      (value_argument
-        (call_expression
-          expression: (dot_qualified_expression
-            receiver: (string_literal
-              (string_content))
-            selector: (simple_identifier))
-          args: (value_arguments))))))
+  (statement
+    (call_expression
+      expression: (simple_identifier)
+      args: (value_arguments
+        (value_argument
+          (string_literal
+            (string_content)))
+        (value_argument
+          (call_expression
+            expression: (dot_qualified_expression
+              receiver: (string_literal
+                (string_content))
+              selector: (simple_identifier))
+            args: (value_arguments)))))))
 
 ================================================================================
 Unsigned literal
@@ -209,8 +236,9 @@ Unsigned literal
 --------------------------------------------------------------------------------
 
 (source_file
-  (unsigned_literal
-    (hex_literal)))
+  (statement
+    (unsigned_literal
+      (hex_literal))))
 
 ================================================================================
 Unsigned Long literal
@@ -221,8 +249,9 @@ Unsigned Long literal
 --------------------------------------------------------------------------------
 
 (source_file
-  (unsigned_literal
-    (hex_literal)))
+  (statement
+    (unsigned_literal
+      (hex_literal))))
 
 ================================================================================
 Null
@@ -233,4 +262,5 @@ null
 --------------------------------------------------------------------------------
 
 (source_file
-  (null_literal))
+  (statement
+    (null_literal)))

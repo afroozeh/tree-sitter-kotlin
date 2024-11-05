@@ -154,7 +154,10 @@ module.exports = grammar({
       repeat($.file_annotation),
       optional($.package_header),
       repeat($.import_list),
-      repeat(seq($._statement, $._semi))
+      // In principle, we either parse a Kotlin file (.kt) or a Kotlin script (.kts).
+      // Statements cannot appear as top-level constructs in Kotlin files, only in scripts.
+      // However, here, we're allowing parsing of both statements and declarations as top level.
+      repeat(choice($._top_level_object, $._top_level_statement))
     ),
 
     shebang_line: $ => seq("#!", /[^\r\n]*/),
@@ -186,7 +189,16 @@ module.exports = grammar({
 
     _import_alias: $ => seq("as", field('alias', $.simple_identifier)),
 
-    top_level_object: $ => seq($._declaration, optional($._semi)),
+    _top_level_object: $ => seq($._declaration, optional($._semi)),
+
+    _top_level_statement: $ => seq(
+      alias(choice(
+        $.assignment,
+        $._loop_statement,
+        $.expression
+      ), $.statement), 
+      $._semi,
+    ),
 
     type_alias: $ => prec.right(seq(
       optional(field('modifiers', $.modifiers)),
@@ -265,7 +277,7 @@ module.exports = grammar({
       ","
     )),
 
-    delegation_specifier: $ => prec.left(choice(
+    delegation_specifier: $ => prec.right(choice(
       $.constructor_invocation,
       $.explicit_delegation,
       $.user_type,
@@ -530,12 +542,12 @@ module.exports = grammar({
     // Statements
     // ==========
 
-    statements: $ => seq(
-      sep1($._statement, $._semi),
+    _statements: $ => seq(
+      sep1($.statement, $._semi),
       optional($._semi),
     ),
 
-    _statement: $ => choice(
+    statement: $ => choice(
       $._declaration,
       $.assignment,
       $._loop_statement,
@@ -547,9 +559,9 @@ module.exports = grammar({
       "@"
     )),
 
-    control_structure_body: $ => choice($.block, $._statement),
+    control_structure_body: $ => choice($.block, $.statement),
 
-    block: $ => prec(PREC.BLOCK, seq("{", optional($.statements), "}")),
+    block: $ => prec(PREC.BLOCK, seq("{", optional($._statements), "}")),
 
     _loop_statement: $ => choice(
       $.for_statement,
@@ -829,7 +841,7 @@ module.exports = grammar({
     lambda_literal: $ => seq(
       "{",
       optional(seq(optional(field('parameters', $.lambda_parameters)), "->")),
-      optional(field('body', $.statements)),
+      optional(field('body', alias($._statements, $.lambda_body))),
       "}"
     ),
 
@@ -880,12 +892,12 @@ module.exports = grammar({
       "if",
       "(", field('condition', $.expression), ")",
       choice(
-        field('consequence', $.control_structure_body),
+        field('consequence', choice($.expression, $.assignment, $.block)),
         ";"
       ),
       optional(seq(
         "else",
-        choice(field('alternative', $.control_structure_body), ";")
+        choice(field('alternative', choice($.expression, $.assignment, $.block), ";"))
       )),
     )),
 

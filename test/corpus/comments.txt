@@ -17,9 +17,10 @@ Comments
 --------------------------------------------------------------------------------
 
 (source_file
-  (additive_expression
-    (integer_literal)
-    (integer_literal))
+  (statement
+    (additive_expression
+      (integer_literal)
+      (integer_literal)))
   (line_comment)
   (multiline_comment)
   (line_comment)

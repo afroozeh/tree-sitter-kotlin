@@ -47,15 +47,15 @@
         {
           "type": "REPEAT",
           "content": {
-            "type": "SEQ",
+            "type": "CHOICE",
             "members": [
               {
                 "type": "SYMBOL",
-                "name": "_statement"
+                "name": "_top_level_object"
               },
               {
                 "type": "SYMBOL",
-                "name": "_semi"
+                "name": "_top_level_statement"
               }
             ]
           }
@@ -230,7 +230,7 @@
         }
       ]
     },
-    "top_level_object": {
+    "_top_level_object": {
       "type": "SEQ",
       "members": [
         {
@@ -248,6 +248,37 @@
               "type": "BLANK"
             }
           ]
+        }
+      ]
+    },
+    "_top_level_statement": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "ALIAS",
+          "content": {
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "assignment"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "_loop_statement"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "expression"
+              }
+            ]
+          },
+          "named": true,
+          "value": "statement"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "_semi"
         }
       ]
     },
@@ -757,7 +788,7 @@
       }
     },
     "delegation_specifier": {
-      "type": "PREC_LEFT",
+      "type": "PREC_RIGHT",
       "value": 0,
       "content": {
         "type": "CHOICE",
@@ -2596,7 +2627,7 @@
         }
       ]
     },
-    "statements": {
+    "_statements": {
       "type": "SEQ",
       "members": [
         {
@@ -2604,7 +2635,7 @@
           "members": [
             {
               "type": "SYMBOL",
-              "name": "_statement"
+              "name": "statement"
             },
             {
               "type": "REPEAT",
@@ -2617,7 +2648,7 @@
                   },
                   {
                     "type": "SYMBOL",
-                    "name": "_statement"
+                    "name": "statement"
                   }
                 ]
               }
@@ -2638,7 +2669,7 @@
         }
       ]
     },
-    "_statement": {
+    "statement": {
       "type": "CHOICE",
       "members": [
         {
@@ -2684,7 +2715,7 @@
         },
         {
           "type": "SYMBOL",
-          "name": "_statement"
+          "name": "statement"
         }
       ]
     },
@@ -2703,7 +2734,7 @@
             "members": [
               {
                 "type": "SYMBOL",
-                "name": "statements"
+                "name": "_statements"
               },
               {
                 "type": "BLANK"
@@ -4266,8 +4297,13 @@
               "type": "FIELD",
               "name": "body",
               "content": {
-                "type": "SYMBOL",
-                "name": "statements"
+                "type": "ALIAS",
+                "content": {
+                  "type": "SYMBOL",
+                  "name": "_statements"
+                },
+                "named": true,
+                "value": "lambda_body"
               }
             },
             {
@@ -4597,8 +4633,21 @@
                 "type": "FIELD",
                 "name": "consequence",
                 "content": {
-                  "type": "SYMBOL",
-                  "name": "control_structure_body"
+                  "type": "CHOICE",
+                  "members": [
+                    {
+                      "type": "SYMBOL",
+                      "name": "expression"
+                    },
+                    {
+                      "type": "SYMBOL",
+                      "name": "assignment"
+                    },
+                    {
+                      "type": "SYMBOL",
+                      "name": "block"
+                    }
+                  ]
                 }
               },
               {
@@ -4624,13 +4673,22 @@
                         "type": "FIELD",
                         "name": "alternative",
                         "content": {
-                          "type": "SYMBOL",
-                          "name": "control_structure_body"
+                          "type": "CHOICE",
+                          "members": [
+                            {
+                              "type": "SYMBOL",
+                              "name": "expression"
+                            },
+                            {
+                              "type": "SYMBOL",
+                              "name": "assignment"
+                            },
+                            {
+                              "type": "SYMBOL",
+                              "name": "block"
+                            }
+                          ]
                         }
-                      },
-                      {
-                        "type": "STRING",
-                        "value": ";"
                       }
                     ]
                   }

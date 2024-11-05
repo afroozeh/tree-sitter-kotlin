@@ -8,14 +8,16 @@ something as A
 --------------------------------------------------------------------------------
 
 (source_file
-  (as_expression
-    (simple_identifier)
-    type: (user_type
-      (type_identifier)))
-  (as_expression
-    (simple_identifier)
-    type: (user_type
-      (type_identifier))))
+  (statement
+    (as_expression
+      (simple_identifier)
+      type: (user_type
+        (type_identifier))))
+  (statement      
+    (as_expression
+      (simple_identifier)
+      type: (user_type
+        (type_identifier)))))
 
 ================================================================================
 Nested types
@@ -26,11 +28,12 @@ something as Some.NestedType
 --------------------------------------------------------------------------------
 
 (source_file
-  (as_expression
-    (simple_identifier)
-    type: (user_type
-      (type_identifier)
-      (type_identifier))))
+  (statement
+    (as_expression
+      (simple_identifier)
+      type: (user_type
+        (type_identifier)
+        (type_identifier)))))
 
 ================================================================================
 Deeply nested types
@@ -41,13 +44,14 @@ somethingElse as A.Deeply.Nested.Type
 --------------------------------------------------------------------------------
 
 (source_file
-  (as_expression
-    (simple_identifier)
-    type: (user_type
-      (type_identifier)
-      (type_identifier)
-      (type_identifier)
-      (type_identifier))))
+  (statement
+    (as_expression
+      (simple_identifier)
+      type: (user_type
+        (type_identifier)
+        (type_identifier)
+        (type_identifier)
+        (type_identifier)))))
 
 ================================================================================
 Generic wildcard types
@@ -58,12 +62,13 @@ something as Generic<*>
 --------------------------------------------------------------------------------
 
 (source_file
-  (as_expression
-    (simple_identifier)
-    type: (user_type
-      (type_identifier)
-      (type_arguments
-        (type_projection)))))
+  (statement
+    (as_expression
+      (simple_identifier)
+      type: (user_type
+        (type_identifier)
+        (type_arguments
+          (type_projection))))))
 
 ================================================================================
 Generic parameterized types
@@ -75,25 +80,27 @@ something as Generic<A, Type>
 --------------------------------------------------------------------------------
 
 (source_file
-  (as_expression
-    (simple_identifier)
-    type: (user_type
-      (type_identifier)
-      (type_arguments
-        (type_projection
-          type: (user_type
-            (type_identifier))))))
-  (as_expression
-    (simple_identifier)
-    type: (user_type
-      (type_identifier)
-      (type_arguments
-        (type_projection
-          type: (user_type
-            (type_identifier)))
-        (type_projection
-          type: (user_type
-            (type_identifier)))))))
+  (statement
+    (as_expression
+      (simple_identifier)
+      type: (user_type
+        (type_identifier)
+        (type_arguments
+          (type_projection
+            type: (user_type
+              (type_identifier)))))))
+  (statement
+    (as_expression
+      (simple_identifier)
+      type: (user_type
+        (type_identifier)
+        (type_arguments
+          (type_projection
+            type: (user_type
+              (type_identifier)))
+          (type_projection
+            type: (user_type
+              (type_identifier))))))))
 
 ================================================================================
 Function types
@@ -105,20 +112,22 @@ consumer as (Int) -> Unit
 --------------------------------------------------------------------------------
 
 (source_file
-  (as_expression
-    (simple_identifier)
-    (function_type
-      (function_type_parameters)
-      type: (user_type
-        (type_identifier))))
-  (as_expression
-    (simple_identifier)
-    (function_type
-      (function_type_parameters
+  (statement
+    (as_expression
+      (simple_identifier)
+      (function_type
+        (function_type_parameters)
         type: (user_type
-          (type_identifier)))
-      type: (user_type
-        (type_identifier)))))
+          (type_identifier)))))
+  (statement
+    (as_expression
+      (simple_identifier)
+      (function_type
+        (function_type_parameters
+          type: (user_type
+            (type_identifier)))
+        type: (user_type
+          (type_identifier))))))
 
 ================================================================================
 Function types with multiple parameters
@@ -130,32 +139,34 @@ b as (Nested.Type, (Int)) -> Unit
 --------------------------------------------------------------------------------
 
 (source_file
-  (as_expression
-    (simple_identifier)
-    (function_type
-      (function_type_parameters
-        type: (user_type
-          (type_identifier))
-        type: (user_type
-          (type_identifier)
-          (type_arguments
-            (type_projection)))
-        type: (user_type
-          (type_identifier)))
-      type: (user_type
-        (type_identifier))))
-  (as_expression
-    (simple_identifier)
-    (function_type
-      (function_type_parameters
-        type: (user_type
-          (type_identifier)
-          (type_identifier))
-        (parenthesized_type
+  (statement
+    (as_expression
+      (simple_identifier)
+      (function_type
+        (function_type_parameters
           type: (user_type
-            (type_identifier))))
-      type: (user_type
-        (type_identifier)))))
+            (type_identifier))
+          type: (user_type
+            (type_identifier)
+            (type_arguments
+              (type_projection)))
+          type: (user_type
+            (type_identifier)))
+        type: (user_type
+          (type_identifier)))))
+  (statement
+    (as_expression
+      (simple_identifier)
+      (function_type
+        (function_type_parameters
+          type: (user_type
+            (type_identifier)
+            (type_identifier))
+          (parenthesized_type
+            type: (user_type
+              (type_identifier))))
+        type: (user_type
+          (type_identifier))))))
 
 ================================================================================
 Function types with named parameters
@@ -166,20 +177,21 @@ a as (first: A, second: B) -> Unit
 --------------------------------------------------------------------------------
 
 (source_file
-  (as_expression
-    (simple_identifier)
-    (function_type
-      (function_type_parameters
-        (parameter
-          name: (simple_identifier)
-          type: (user_type
-            (type_identifier)))
-        (parameter
-          name: (simple_identifier)
-          type: (user_type
-            (type_identifier))))
-      type: (user_type
-        (type_identifier)))))
+  (statement
+    (as_expression
+      (simple_identifier)
+      (function_type
+        (function_type_parameters
+          (parameter
+            name: (simple_identifier)
+            type: (user_type
+              (type_identifier)))
+          (parameter
+            name: (simple_identifier)
+            type: (user_type
+              (type_identifier))))
+        type: (user_type
+          (type_identifier))))))
 
 ================================================================================
 Function types with receiver
@@ -190,14 +202,15 @@ a as T.() -> Unit
 --------------------------------------------------------------------------------
 
 (source_file
-  (as_expression
-    (simple_identifier)
-    (function_type
-      (user_type
-        (type_identifier))
-      (function_type_parameters)
-      type: (user_type
-        (type_identifier)))))
+  (statement
+    (as_expression
+      (simple_identifier)
+      (function_type
+        (user_type
+          (type_identifier))
+        (function_type_parameters)
+        type: (user_type
+          (type_identifier))))))
 
 ================================================================================
 Function types with qualified type receiver
@@ -231,17 +244,18 @@ Foo(x = "hi", y = "bar")
 --------------------------------------------------------------------------------
 
 (source_file
-  (call_expression
-    expression: (simple_identifier)
-    args: (value_arguments
-      (value_argument
-        (simple_identifier)
-        (string_literal
-          (string_content)))
-      (value_argument
-        (simple_identifier)
-        (string_literal
-          (string_content))))))
+  (statement
+    (call_expression
+      expression: (simple_identifier)
+      args: (value_arguments
+        (value_argument
+          (simple_identifier)
+          (string_literal
+            (string_content)))
+        (value_argument
+          (simple_identifier)
+          (string_literal
+            (string_content)))))))
 
 ================================================================================
 Type constructor with trailing comma
@@ -252,17 +266,18 @@ Foo(x = "hi", y = "bar",)
 --------------------------------------------------------------------------------
 
 (source_file
-  (call_expression
-    expression: (simple_identifier)
-    args: (value_arguments
-      (value_argument
-        (simple_identifier)
-        (string_literal
-          (string_content)))
-      (value_argument
-        (simple_identifier)
-        (string_literal
-          (string_content))))))
+  (statement
+    (call_expression
+      expression: (simple_identifier)
+      args: (value_arguments
+        (value_argument
+          (simple_identifier)
+          (string_literal
+            (string_content)))
+        (value_argument
+          (simple_identifier)
+          (string_literal
+            (string_content)))))))
 
 ================================================================================
 Type alias with type parameters
@@ -296,13 +311,14 @@ a as T & F
 --------------------------------------------------------------------------------
 
 (source_file
-  (as_expression
+  (statement
+    (as_expression
     (simple_identifier)
     (not_nullable_type
       (user_type
         (type_identifier))
       (user_type
-        (type_identifier)))))
+        (type_identifier))))))
 
 ================================================================================
 Ampersand type with modifiers
@@ -313,14 +329,15 @@ a as @Foo T & F
 --------------------------------------------------------------------------------
 
 (source_file
-  (as_expression
-    (simple_identifier)
-    (type_modifiers
-      (annotation
+  (statement
+    (as_expression
+      (simple_identifier)
+      (type_modifiers
+        (annotation
+          (user_type
+            (type_identifier))))
+      (not_nullable_type
         (user_type
-          (type_identifier))))
-    (not_nullable_type
-      (user_type
-        (type_identifier))
-      (user_type
-        (type_identifier)))))
+          (type_identifier))
+        (user_type
+          (type_identifier))))))
