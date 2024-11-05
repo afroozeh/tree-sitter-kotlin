@@ -47,15 +47,15 @@
         {
           "type": "REPEAT",
           "content": {
-            "type": "SEQ",
+            "type": "CHOICE",
             "members": [
               {
                 "type": "SYMBOL",
-                "name": "_statement"
+                "name": "_top_level_object"
               },
               {
                 "type": "SYMBOL",
-                "name": "_semi"
+                "name": "_top_level_statement"
               }
             ]
           }
@@ -230,7 +230,7 @@
         }
       ]
     },
-    "top_level_object": {
+    "_top_level_object": {
       "type": "SEQ",
       "members": [
         {
@@ -248,6 +248,32 @@
               "type": "BLANK"
             }
           ]
+        }
+      ]
+    },
+    "_top_level_statement": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "CHOICE",
+          "members": [
+            {
+              "type": "SYMBOL",
+              "name": "assignment"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "_loop_statement"
+            },
+            {
+              "type": "SYMBOL",
+              "name": "expression"
+            }
+          ]
+        },
+        {
+          "type": "SYMBOL",
+          "name": "_semi"
         }
       ]
     },
@@ -757,7 +783,7 @@
       }
     },
     "delegation_specifier": {
-      "type": "PREC_LEFT",
+      "type": "PREC_RIGHT",
       "value": 0,
       "content": {
         "type": "CHOICE",
