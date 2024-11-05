@@ -1872,6 +1872,10 @@
         "required": false,
         "types": [
           {
+            "type": "assignment",
+            "named": true
+          },
+          {
             "type": "block",
             "named": true
           },
@@ -1895,6 +1899,10 @@
         "multiple": false,
         "required": false,
         "types": [
+          {
+            "type": "assignment",
+            "named": true
+          },
           {
             "type": "block",
             "named": true

@@ -892,12 +892,12 @@ module.exports = grammar({
       "if",
       "(", field('condition', $.expression), ")",
       choice(
-        field('consequence', choice($.expression, $.block)),
+        field('consequence', choice($.expression, $.assignment, $.block)),
         ";"
       ),
       optional(seq(
         "else",
-        choice(field('alternative', choice($.expression, $.block), ";"))
+        choice(field('alternative', choice($.expression, $.assignment, $.block), ";"))
       )),
     )),
 

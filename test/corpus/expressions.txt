@@ -620,6 +620,28 @@ if (cond1) {
                     (string_content)))))))))))
 
 ================================================================================
+If else expression with assignment
+================================================================================
+
+if (cond1)
+  a = 1
+else 
+	a = 2
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (statement
+    (if_expression
+      condition: (simple_identifier)
+      consequence: (assignment
+        left: (simple_identifier)
+        right: (integer_literal))
+      alternative: (assignment
+        left: (simple_identifier)
+        right: (integer_literal)))))
+
+================================================================================
 Increment/decrement expressions
 ================================================================================
 
