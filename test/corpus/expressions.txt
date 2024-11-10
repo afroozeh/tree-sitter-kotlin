@@ -16,12 +16,14 @@ Multiplication expression
 Safe Navigation
 ================================================================================
 
-a?.bar()
-a? .bar()
-a? . bar()
-a?
-  .bar()
-a ? . bar()
+a?.b()
+a
+?.b()
+a?.
+b()
+a
+?.
+b()
 
 --------------------------------------------------------------------------------
 
@@ -32,25 +34,19 @@ a ? . bar()
         receiver: (simple_identifier)
         selector: (simple_identifier))
       args: (value_arguments)))
-  (statement    
+  (statement
     (call_expression
       expression: (dot_qualified_expression
         receiver: (simple_identifier)
         selector: (simple_identifier))
       args: (value_arguments)))
-  (statement    
+  (statement
     (call_expression
       expression: (dot_qualified_expression
         receiver: (simple_identifier)
         selector: (simple_identifier))
       args: (value_arguments)))
-  (statement    
-    (call_expression
-      expression: (dot_qualified_expression
-        receiver: (simple_identifier)
-        selector: (simple_identifier))
-      args: (value_arguments)))
-  (statement      
+  (statement
     (call_expression
       expression: (dot_qualified_expression
         receiver: (simple_identifier)
@@ -373,6 +369,7 @@ fun main() { val temp = b.y; b.y = b.z; b.z = temp }
 when (dir) {
   1 -> { val temp = b.y; b.y = b.z; b.z = temp }
 }
+
 --------------------------------------------------------------------------------
 
 (source_file
@@ -865,33 +862,6 @@ SceneStateParameters::class.java
       selector: (simple_identifier))))
 
 ================================================================================
-Dangling else ambiguity
-================================================================================
-
-if (x == 1)
-	if (y == 2)
-      "a"
-	else
-      "b"
-
---------------------------------------------------------------------------------
-
-(source_file
-  (statement
-    (if_expression
-      condition: (equality_expression
-        (simple_identifier)
-        (integer_literal))
-      consequence: (if_expression
-        condition: (equality_expression
-          (simple_identifier)
-          (integer_literal))
-        consequence: (string_literal
-          (string_content))
-        alternative: (string_literal
-          (string_content))))))
-
-================================================================================
 Lambda parameters with trailing comma
 ================================================================================
 
@@ -1107,3 +1077,114 @@ BufferedChannel<*>::registerSelectForSend as RegistrationFunction
         (simple_identifier))
       type: (user_type
         (type_identifier)))))
+
+================================================================================
+if with single expression
+================================================================================
+
+if (x == 1)
+	x
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (statement
+    (if_expression
+      condition: (equality_expression
+        (simple_identifier)
+        (integer_literal))
+      consequence: (simple_identifier))))
+
+================================================================================
+if-else with single expression
+================================================================================
+
+if (x == 1)
+	x
+else 
+  y  
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (statement
+    (if_expression
+      condition: (equality_expression
+        (simple_identifier)
+        (integer_literal))
+      consequence: (simple_identifier)
+      alternative: (simple_identifier))))
+
+================================================================================
+Dangling if-else
+================================================================================
+
+if (x == 1)
+	if (y == 2)
+      "a"
+	else
+      "b"
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (statement
+    (if_expression
+      condition: (equality_expression
+        (simple_identifier)
+        (integer_literal))
+      consequence: (if_expression
+        condition: (equality_expression
+          (simple_identifier)
+          (integer_literal))
+        consequence: (string_literal
+          (string_content))
+        alternative: (string_literal
+          (string_content))))))
+
+================================================================================
+if with single expression in else branch
+================================================================================
+
+if (x == 1) 
+else if (y == 1)
+	y
+
+--------------------------------------------------------------------------------
+    
+(source_file
+  (statement
+    (if_expression
+      condition: (equality_expression
+        (simple_identifier)
+        (integer_literal))
+      alternative: (if_expression
+        condition: (equality_expression
+          (simple_identifier)
+          (integer_literal))
+        consequence: (simple_identifier)))))
+
+================================================================================
+if-else with single expression in else branch
+================================================================================
+
+if (x == 1) 
+else if (y == 1)
+	y
+else 
+ z  
+
+--------------------------------------------------------------------------------
+    
+(source_file
+  (statement
+    (if_expression
+      condition: (equality_expression
+        (simple_identifier)
+        (integer_literal))
+      alternative: (if_expression
+        condition: (equality_expression
+          (simple_identifier)
+          (integer_literal))
+        consequence: (simple_identifier)
+        alternative: (simple_identifier)))))
