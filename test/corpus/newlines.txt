@@ -312,11 +312,9 @@ fun foo() {
               (binding_pattern_kind)
               var_decl: (variable_declaration
                 id: (simple_identifier))
-              initializer: (simple_identifier)))
-          (statement
-            (prefix_expression
-              op: (prefix_unary_operator)
-              expression: (simple_identifier))))))))
+              initializer: (additive_expression
+                (simple_identifier)
+                (simple_identifier)))))))))
 
 ================================================================================
 Newline after additive expression
@@ -344,3 +342,137 @@ fun foo() {
               initializer: (additive_expression
                 (simple_identifier)
                 (simple_identifier)))))))))
+
+================================================================================
+Lambda Expressions with body on newline
+================================================================================
+
+toolWindows.forEach {
+    if (Random.nextBoolean()) {
+        if (it.isVisible.not()) {
+            it.show()
+        }
+    } else {
+        if (it.isVisible) {
+            it.hide()
+        }
+    }
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (statement
+    (call_expression
+      expression: (dot_qualified_expression
+        receiver: (simple_identifier)
+        selector: (simple_identifier))
+      lambda_arg: (annotated_lambda
+        (lambda_literal
+          body: (statements
+            (statement
+              (if_expression
+                condition: (call_expression
+                  expression: (dot_qualified_expression
+                    receiver: (simple_identifier)
+                    selector: (simple_identifier))
+                  args: (value_arguments))
+                consequence: (block
+                  (statements
+                    (statement
+                      (if_expression
+                        condition: (call_expression
+                          expression: (dot_qualified_expression
+                            receiver: (dot_qualified_expression
+                              receiver: (simple_identifier)
+                              selector: (simple_identifier))
+                            selector: (simple_identifier))
+                          args: (value_arguments))
+                        consequence: (block
+                          (statements
+                            (statement
+                              (call_expression
+                                expression: (dot_qualified_expression
+                                  receiver: (simple_identifier)
+                                  selector: (simple_identifier))
+                                args: (value_arguments)))))))))
+                alternative: (block
+                  (statements
+                    (statement
+                      (if_expression
+                        condition: (dot_qualified_expression
+                          receiver: (simple_identifier)
+                          selector: (simple_identifier))
+                        consequence: (block
+                          (statements
+                            (statement
+                              (call_expression
+                                expression: (dot_qualified_expression
+                                  receiver: (simple_identifier)
+                                  selector: (simple_identifier))
+                                args: (value_arguments)))))))))))))))))
+
+
+================================================================================
+Newline after assignment operator
+================================================================================
+
+val current =
+        Measure(
+            averageMemory = ((previous.averageMemory * previous.count) + memory) / (previous.count + 1),
+            count = previous.count + 1
+        )
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (property_declaration
+    (binding_pattern_kind)
+    var_decl: (variable_declaration
+      id: (simple_identifier))
+    initializer: (call_expression
+      expression: (simple_identifier)
+      args: (value_arguments
+        (value_argument
+          (simple_identifier)
+          (multiplicative_expression
+            (parenthesized_expression
+              (additive_expression
+                (parenthesized_expression
+                  (multiplicative_expression
+                    (dot_qualified_expression
+                      receiver: (simple_identifier)
+                      selector: (simple_identifier))
+                    (dot_qualified_expression
+                      receiver: (simple_identifier)
+                      selector: (simple_identifier))))
+                (simple_identifier)))
+            (parenthesized_expression
+              (additive_expression
+                (dot_qualified_expression
+                  receiver: (simple_identifier)
+                  selector: (simple_identifier))
+                (integer_literal)))))
+        (value_argument
+          (simple_identifier)
+          (additive_expression
+            (dot_qualified_expression
+              receiver: (simple_identifier)
+              selector: (simple_identifier))
+            (integer_literal)))))))
+
+================================================================================
+Class name on new line
+================================================================================
+
+
+class 
+A {
+}     
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (class_declaration
+    name: (simple_identifier)
+    body: (class_body)))

@@ -76,6 +76,10 @@ module.exports = grammar({
   name: "kotlin",
 
   conflicts: $ => [
+    [$.class_declaration],
+    [$.class_declaration, $.primary_constructor],
+    [$.import_list],
+    
     // @Type(... could either be an annotation constructor invocation or an annotated expression
     [$.constructor_invocation, $._unescaped_annotation],
 
@@ -115,32 +119,31 @@ module.exports = grammar({
 
     [$._simple_user_type],
 
-    [$.comparison_expression],
-
     [$.annotated_expression, $.modifiers],
     [$.annotated_expression, $.when_subject],
     [$.annotated_expression, $.value_argument],
     [$.annotation],
     [$.variable_declaration],
     [$.import_header, $._soft_keywords],
-    [$.class_parameters],
     [$.class_parameter],
-    [$.function_value_parameters],
     [$.collection_literal],
     // becuase of $._NL after simple_identifier, all can reduce
     [$.value_argument, $._primary_expression],
+    [$.variable_declaration, $._primary_expression],
+    [$.variable_declaration, $._simple_user_type],
     [$.value_argument],
     [$.property_declaration],
-  ],
-
-  externals: $ => [
-    $.multiline_comment,
   ],
 
   extras: $ => [
     $.line_comment,
     $.multiline_comment,
     NON_NL_WHITESPACE
+  ],
+
+  externals: $ => [
+    $._bin_min,
+    $._bin_plus
   ],
 
   supertypes: $ => [
@@ -184,7 +187,7 @@ module.exports = grammar({
 
     package_header: $ => seq("package", $.identifier, $._semi),
 
-    import_list: $ => prec.right(repeat1($.import_header)),
+    import_list: $ => repeat1($.import_header),
 
     import_header: $ => seq(
       "import",
@@ -214,8 +217,7 @@ module.exports = grammar({
       alias($.simple_identifier, $.type_identifier),
       optional($.type_parameters),
       repeat($._NL),
-      "=",
-      repeat($._NL),
+      $._ASSIGNMENT,
       $._type
     )),
 
@@ -232,9 +234,10 @@ module.exports = grammar({
     // Classes
     // ==========
 
-    class_declaration: $ => prec.right(seq(
+    class_declaration: $ =>seq(
       optional(field('modifiers', $.modifiers)),
       choice("class", seq(optional(seq("fun", repeat($._NL))), "interface")),
+      repeat($._NL),
       field('name', $.simple_identifier),
       optional($.type_parameters),
       optional($.primary_constructor),
@@ -242,7 +245,7 @@ module.exports = grammar({
       repeat($._NL),
       optional($.type_constraints),
       optional(field('body', $.class_body)),
-    )),
+    ),
 
     enum_class_declaration: $ => prec.right(seq(
       optional(field('modifiers', $.modifiers)),
@@ -277,8 +280,7 @@ module.exports = grammar({
     ),
 
     class_parameters: $ => seq(
-      "(",
-      repeat($._NL),
+      $._LPAR,
       optional(sep1($.class_parameter, repeat($._NL), ",", repeat($._NL))),
       optional(","),
       repeat($._NL),
@@ -291,7 +293,7 @@ module.exports = grammar({
       field('name', $.simple_identifier),
       ":",
       field('type', $._type),
-      optional(seq(repeat($._NL), "=", repeat($._NL), field('initializer', $.expression)))
+      optional(seq(repeat($._NL), $._ASSIGNMENT, field('initializer', $.expression)))
     ),
 
     binding_pattern_kind: $ => choice("val", "var"),
@@ -358,7 +360,7 @@ module.exports = grammar({
 
     _class_member_declarations: $ => repeat1(seq(
       $._class_member_declaration, 
-      optional($._semis)
+      optional($._semi)
     )),
 
     _class_member_declaration: $ => choice(
@@ -381,8 +383,7 @@ module.exports = grammar({
     )),
 
     function_value_parameters: $ => seq(
-      "(",
-      repeat($._NL),
+      $._LPAR,
       optional(sep1($.function_value_parameter, repeat($._NL), ",", repeat($._NL))),
       optional(","),
       repeat($._NL),
@@ -392,7 +393,7 @@ module.exports = grammar({
     function_value_parameter: $ => seq(
       optional(field('modifiers', $.parameter_modifiers)),
       field('parameter', $.parameter),
-      optional(seq("=", field('initializer', $.expression)))
+      optional(seq($._ASSIGNMENT, field('initializer', $.expression)))
     ),
 
     receiver_type: $ => seq(
@@ -419,14 +420,14 @@ module.exports = grammar({
 
     function_body: $ => choice(
       $.block, 
-      seq("=", repeat($._NL), field('expression', $.expression))
+      seq($._ASSIGNMENT, field('expression', $.expression))
     ),
 
-    variable_declaration: $ => prec(PREC.VAR_DECL, seq(
+    variable_declaration: $ => seq(
       // repeat($.annotation), TODO
       field('id', choice($.simple_identifier, $._soft_keywords)),
       optional(field('type', seq(repeat($._NL), ":", repeat($._NL), $._type)))
-    )),
+    ),
 
     property_declaration: $ => seq(
       optional(field('modifiers', $.modifiers)),
@@ -436,7 +437,7 @@ module.exports = grammar({
       field('var_decl', choice($.variable_declaration, $.multi_variable_declaration)),
       optional(field('type_constraints', $.type_constraints)),
       optional(choice(
-        seq("=", field('initializer', $.expression)),
+        seq($._ASSIGNMENT, field('initializer', $.expression)),
         $.property_delegate
       )),
       repeat($._NL),
@@ -454,7 +455,8 @@ module.exports = grammar({
       optional(field('modifiers', $.modifiers)),
       "get",
       optional(seq(
-        "(", ")",
+        $._LPAR,
+        ")",
         optional(seq(":", $._type)),
         $.function_body
       ))
@@ -464,7 +466,7 @@ module.exports = grammar({
       optional(field('modifiers', $.modifiers)),
       "set",
       optional(seq(
-        "(",
+        $._LPAR,
         $.parameter_with_optional_type,
         ")",
         optional(seq(":", $._type)),
@@ -472,7 +474,11 @@ module.exports = grammar({
       ))
     )),
 
-    parameters_with_optional_type: $ => seq("(", sep1($.parameter_with_optional_type, ","), ")"),
+    parameters_with_optional_type: $ => seq(
+      $._LPAR,
+      sep1($.parameter_with_optional_type, ","), 
+      ")"
+    ),
 
     parameter_with_optional_type: $ => seq(
       optional($.parameter_modifiers),
@@ -586,15 +592,15 @@ module.exports = grammar({
 
     // A higher-than-default precedence resolves the ambiguity with 'parenthesized_type'
     function_type_parameters: $ => prec.left(1, seq(
-      "(",
+      $._LPAR,
       optional(sep1(choice($.parameter, $._type), ",")),
       ")"
     )),
 
-    parenthesized_type: $ => seq("(", $._type, ")"),
+    parenthesized_type: $ => seq($._LPAR, $._type, ")"),
 
     parenthesized_user_type: $ => seq(
-      "(",
+      $._LPAR,
       choice($.user_type, $.parenthesized_user_type),
       ")"
     ),
@@ -603,10 +609,10 @@ module.exports = grammar({
     // Statements
     // ==========
 
-    statements: $ => prec.right(seq(
-      sep1($.statement, $._semi),
-      optional($._semi),
-    )),
+    statements: $ => seq(
+      sep1($.statement, $._semis),
+      optional($._semis)
+    ),
 
     statement: $ => choice(
       $._declaration,
@@ -623,7 +629,7 @@ module.exports = grammar({
     control_structure_body: $ => choice($.block, $.statement),
 
     block: $ => prec(PREC.BLOCK, seq(
-      "{", 
+      "{",
       repeat($._NL),
       optional($.statements),
       "}")
@@ -637,7 +643,7 @@ module.exports = grammar({
 
     for_statement: $ => prec.right(seq(
       "for",
-      "(",
+      $._LPAR,
       repeat($.annotation),
       field('var_decl', choice($.variable_declaration, $.multi_variable_declaration)),
       "in",
@@ -648,7 +654,7 @@ module.exports = grammar({
 
     while_statement: $ => seq(
       "while",
-      "(",
+      $._LPAR,
       $.expression,
       ")",
       choice(";", $.control_structure_body)
@@ -658,7 +664,7 @@ module.exports = grammar({
       "do",
       optional($.control_structure_body),
       "while",
-      "(",
+      $._LPAR,
       $.expression,
       ")",
     )),
@@ -666,7 +672,7 @@ module.exports = grammar({
     assignment: $ =>
       prec.left(PREC.ASSIGNMENT, seq(
         field('left', $._directly_assignable_expression),
-        field('op', choice('=', $._assignment_and_operator)),
+        field('op', choice($._ASSIGNMENT, $._assignment_and_operator)),
         field('right', $.expression))),
 
     // ==========
@@ -769,7 +775,7 @@ module.exports = grammar({
       seq($._in_operator, $.expression),
       seq($._is_operator, $._type)))),
 
-    comparison_expression: $ => prec(PREC.COMPARISON, seq($.expression, $._comparison_operator, $.expression)),
+    comparison_expression: $ => prec.left(PREC.COMPARISON, seq($.expression, $._comparison_operator, $.expression)),
 
     equality_expression: $ => prec.left(PREC.EQUALITY, seq($.expression, $._equality_operator, $.expression)),
 
@@ -799,8 +805,7 @@ module.exports = grammar({
     type_arguments: $ => prec.dynamic(PREC.GENERIC, seq("<", sep1($.type_projection, ","), ">")),
 
     value_arguments: $ => seq(
-      "(",
-      repeat($._NL),
+      $._LPAR,
       optional(
         seq(
           sep1($.value_argument, repeat($._NL), ",", repeat($._NL)),
@@ -814,7 +819,7 @@ module.exports = grammar({
     value_argument: $ => seq(
       optional($.annotation),
       repeat($._NL),
-      optional(seq(choice($.simple_identifier, $._soft_keywords), repeat($._NL), "=", repeat($._NL))),
+      optional(seq(choice($.simple_identifier, $._soft_keywords), repeat($._NL), $._ASSIGNMENT)),
       optional("*"),
       repeat($._NL),
       $.expression
@@ -839,7 +844,7 @@ module.exports = grammar({
       $.index_access_expression
     ),
 
-    parenthesized_expression: $ => seq("(", $.expression, ")"),
+    parenthesized_expression: $ => seq($._LPAR, $.expression, ")"),
 
     collection_literal: $ => seq(
       "[", 
@@ -910,13 +915,14 @@ module.exports = grammar({
 
     lambda_literal: $ => seq(
       "{",
+      repeat($._NL),
       optional(seq(optional(field('parameters', $.lambda_parameters)), $._ARROW)),
       optional(field('body', $.statements)),
       "}"
     ),
 
     multi_variable_declaration: $ => seq(
-      '(',
+      $._LPAR,
       repeat($._NL),
       $.variable_declaration, 
       repeat(seq(repeat($._NL), ',', repeat($._NL), $.variable_declaration)),
@@ -965,8 +971,7 @@ module.exports = grammar({
     if_expression: $ => prec.right(seq(
       "if",
       repeat($._NL),
-      "(", 
-      repeat($._NL),
+      $._LPAR,
       field('condition', $.expression), 
       repeat($._NL),
       ")",
@@ -989,12 +994,12 @@ module.exports = grammar({
     ),
 
     when_subject: $ => seq(
-      "(",
+      $._LPAR,
       optional(seq(
         repeat($.annotation),
         "val",
         $.variable_declaration,
-        "="
+        $._ASSIGNMENT
       )),
       $.expression,
       ")",
@@ -1046,7 +1051,7 @@ module.exports = grammar({
 
     catch_block: $ => seq(
       "catch",
-      "(",
+      $._LPAR,
       repeat($.annotation),
       field('name', $.simple_identifier),
       ":",
@@ -1082,7 +1087,7 @@ module.exports = grammar({
 
     _is_operator: $ => choice("is", "!is"),
 
-    _additive_operator: $ => choice("+", "-"),
+    _additive_operator: $ => choice($._bin_plus, $._bin_min),
 
     _multiplicative_operator: $ => choice("*", "/", "%"),
 
@@ -1282,18 +1287,6 @@ module.exports = grammar({
     // Lexical grammar
     // ====================
 
-
-    // ==========
-    // General
-    // ==========
-
-    line_comment: $ => token(seq('//', /[^\r\n]*[\r\n]/)),
-
-    // ==========
-    // Separators and operations
-    // ==========
-
-
     // ==========
     // Keywords
     // ==========
@@ -1398,8 +1391,21 @@ module.exports = grammar({
     _NL: $ => /\r?\n/,
     _ELSE: $ => token(prec(1, /\s*else\s*/)),
     _ARROW: $ => /\s*->\s*/,
-    _semi: $ => prec.right(seq(choice(";", $._NL), repeat($._NL))),
-    _semis: $ => prec.right(repeat1(choice(";", $._NL))),
+    _LPAR: $ => /\(\s*/,
+    _ASSIGNMENT: $ => /=\s*/,
+    _semi: $ => seq(choice(";", $._NL), repeat($._NL)),
+    _semis: $ => repeat1(choice(";", $._NL)),
+
+    line_comment: $ => token(seq('//', /[^\r\n]*[\r\n]/)),
+
+    // We need to consume all the newlines after the commend, otherwise, the comments
+    // may be inserted in unwanted places. Comments (and other extra) nodes are inserted
+    // after tokens.
+    multiline_comment: $ => seq(
+      token("/*"), 
+      repeat(choice($._NL, /./)), 
+      /\*\/(\r?\n)*/,
+    )
   }
 });
 
