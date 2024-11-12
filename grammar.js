@@ -133,6 +133,7 @@ module.exports = grammar({
     [$.variable_declaration, $._simple_user_type],
     [$.value_argument],
     [$.property_declaration],
+    [$._enum_entries]
   ],
 
   extras: $ => [
@@ -268,14 +269,6 @@ module.exports = grammar({
       "{",
       repeat($._NL),
       optional($._class_member_declarations),
-      "}"
-    ),
-
-    enum_class_body: $ => seq(
-      "{",
-      repeat($._NL),
-      optional($._enum_entries),
-      optional(seq(";", repeat($._NL), $._class_member_declarations)),
       "}"
     ),
 
@@ -515,11 +508,21 @@ module.exports = grammar({
     // Enum classes
     // ==========
 
-    _enum_entries: $ => prec.left(seq(
-      sep1($.enum_entry, repeat($._NL), ",", repeat($._NL)), 
+    enum_class_body: $ => seq(
+      "{",
+      repeat($._NL),
+      optional($._enum_entries),
+      optional(seq(";", repeat($._NL), optional($._class_member_declarations))),
+      "}"
+    ),
+
+    _enum_entries: $ => seq(
+      $.enum_entry,
+      repeat(seq(repeat($._NL), ",", repeat($._NL), $.enum_entry)),
+      repeat($._NL),
       optional(","),
-      repeat($._NL)
-    )),
+      repeat($._NL),
+    ),
 
     enum_entry: $ => seq(
       optional(field('modifiers', $.modifiers)),

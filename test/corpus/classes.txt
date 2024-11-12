@@ -600,3 +600,49 @@ expect fun loadAnimatedImage(path: String): AnimatedImage
             (type_identifier)))))
     type: (user_type
       (type_identifier))))
+
+================================================================================
+Enum with semicolon after last entry
+================================================================================
+
+enum class AvailableLanguages {
+    DE,
+    EN;
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (enum_class_declaration
+    name: (simple_identifier)
+    body: (enum_class_body
+      (enum_entry
+        name: (simple_identifier))
+      (enum_entry
+        name: (simple_identifier)))))
+
+================================================================================
+Enum entries with comma at the end of last element
+================================================================================
+
+enum class Screens {
+    Images,
+    Strings,
+    Font,
+    File,
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (enum_class_declaration
+    name: (simple_identifier)
+    body: (enum_class_body
+      (enum_entry
+        name: (simple_identifier))
+      (enum_entry
+        name: (simple_identifier))
+      (enum_entry
+        name: (simple_identifier))
+      (enum_entry
+        name: (simple_identifier)))))
