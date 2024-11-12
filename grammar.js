@@ -443,9 +443,8 @@ module.exports = grammar({
       repeat($._NL),
       optional(';'),
       choice(
-        // TODO: Getter-setter combinations
-        optional($.getter),
-        optional($.setter)
+        seq(optional($.getter), optional(seq(repeat($._NL), $.setter))),
+        seq(optional($.setter), optional(seq(repeat($._NL), $.setter)))
       )
     ),
 
@@ -767,7 +766,7 @@ module.exports = grammar({
 
     _range_opeartor: $ => choice("..", "..<"),
 
-    infix_expression: $ => prec.left(PREC.INFIX, seq($.expression, $.simple_identifier, $.expression)),
+    infix_expression: $ => prec.left(PREC.INFIX, seq($.expression, $.simple_identifier, repeat($._NL), $.expression)),
 
     elvis_expression: $ => prec.left(PREC.ELVIS, seq($.expression, $._ELVIS, repeat($._NL), $.expression)),
 
@@ -1102,7 +1101,7 @@ module.exports = grammar({
       choice(
         $.dot_qualified_expression,
         $.index_access_expression,
-        $.simple_identifier,
+        choice($.simple_identifier, $._soft_keywords),
         $.postfix_expression,
       )
     ),
@@ -1396,7 +1395,7 @@ module.exports = grammar({
     _semi: $ => seq(choice(";", $._NL), repeat($._NL)),
     _semis: $ => repeat1(choice(";", $._NL)),
 
-    line_comment: $ => token(seq('//', /[^\r\n]*[\r\n]/)),
+    line_comment: $ => token(seq('//', /[^\r\n]*/)),
 
     // We need to consume all the newlines after the commend, otherwise, the comments
     // may be inserted in unwanted places. Comments (and other extra) nodes are inserted
@@ -1404,7 +1403,7 @@ module.exports = grammar({
     multiline_comment: $ => seq(
       token("/*"), 
       repeat(choice($._NL, /./)), 
-      /\*\/(\r?\n)*/,
+      token("*/"),
     )
   }
 });
