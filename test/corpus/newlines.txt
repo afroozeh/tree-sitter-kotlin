@@ -476,3 +476,246 @@ A {
   (class_declaration
     name: (simple_identifier)
     body: (class_body)))
+
+
+================================================================================
+Newline before closing parenthesis
+================================================================================
+
+val previewClasspathString =
+    (previewClasspath.files.asSequence() +
+            uiTooling.files.asSequence() +
+            skikoRuntimeFiles.files.asSequence()
+    ).pathString()
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (property_declaration
+    (binding_pattern_kind)
+    var_decl: (variable_declaration
+      id: (simple_identifier))
+    initializer: (call_expression
+      expression: (dot_qualified_expression
+        receiver: (parenthesized_expression
+          (additive_expression
+            (additive_expression
+              (call_expression
+                expression: (dot_qualified_expression
+                  receiver: (dot_qualified_expression
+                    receiver: (simple_identifier)
+                    selector: (simple_identifier))
+                  selector: (simple_identifier))
+                args: (value_arguments))
+              (call_expression
+                expression: (dot_qualified_expression
+                  receiver: (dot_qualified_expression
+                    receiver: (simple_identifier)
+                    selector: (simple_identifier))
+                  selector: (simple_identifier))
+                args: (value_arguments)))
+            (call_expression
+              expression: (dot_qualified_expression
+                receiver: (dot_qualified_expression
+                  receiver: (simple_identifier)
+                  selector: (simple_identifier))
+                selector: (simple_identifier))
+              args: (value_arguments))))
+        selector: (simple_identifier))
+      args: (value_arguments))))
+
+================================================================================
+Newline after by in properties
+================================================================================
+
+private object Object {
+  public val android_str: StringResource by 
+      lazy { init_android_str() }
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (object_declaration
+    modifiers: (modifiers
+      (visibility_modifier))
+    name: (simple_identifier)
+    body: (class_body
+      (property_declaration
+        modifiers: (modifiers
+          (visibility_modifier))
+        (binding_pattern_kind)
+        var_decl: (variable_declaration
+          id: (simple_identifier)
+          type: (user_type
+            (type_identifier)))
+        (property_delegate
+          (call_expression
+            expression: (simple_identifier)
+            lambda_arg: (annotated_lambda
+              (lambda_literal
+                body: (statements
+                  (statement
+                    (call_expression
+                      expression: (simple_identifier)
+                      args: (value_arguments))))))))))))
+
+================================================================================
+Newline after where
+================================================================================
+
+fun <TValue> CSSStyleVariable<TValue>.value(fallback: TValue? = null)
+        where TValue : CSSVariableValueAs<TValue>,
+              TValue : StylePropertyValue =
+    CSSVariableValue<TValue>(
+        variableValue(
+            name,
+            fallback
+        )
+    )
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (type_parameters
+      (type_parameter
+        (type_identifier)))
+    receiver_type: (receiver_type
+      type: (user_type
+        (type_identifier)
+        (type_arguments
+          (type_projection
+            type: (user_type
+              (type_identifier))))))
+    name: (simple_identifier)
+    parameters: (function_value_parameters
+      (function_value_parameter
+        parameter: (parameter
+          name: (simple_identifier)
+          type: (nullable_type
+            type: (user_type
+              (type_identifier))))
+        initializer: (null_literal)))
+    (type_constraints
+      (type_constraint
+        (type_identifier)
+        type: (user_type
+          (type_identifier)
+          (type_arguments
+            (type_projection
+              type: (user_type
+                (type_identifier))))))
+      (type_constraint
+        (type_identifier)
+        type: (user_type
+          (type_identifier))))
+    body: (function_body
+      expression: (call_expression
+        expression: (simple_identifier)
+        (type_arguments
+          (type_projection
+            type: (user_type
+              (type_identifier))))
+        args: (value_arguments
+          (value_argument
+            (call_expression
+              expression: (simple_identifier)
+              args: (value_arguments
+                (value_argument
+                  (simple_identifier))
+                (value_argument
+                  (simple_identifier))))))))))
+
+================================================================================
+Newline in interpolated expression
+================================================================================
+
+error("Found references to atomicfu in jar file $name in the following class files: ${
+    foundClasses.joinToString("") { "\n\t\t" + it }
+}")
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (statement
+    (call_expression
+      expression: (simple_identifier)
+      args: (value_arguments
+        (value_argument
+          (string_literal
+            (string_content)
+            (interpolated_identifier)
+            (string_content)
+            (interpolated_expression
+              (call_expression
+                expression: (dot_qualified_expression
+                  receiver: (simple_identifier)
+                  selector: (simple_identifier))
+                args: (value_arguments
+                  (value_argument
+                    (string_literal)))
+                lambda_arg: (annotated_lambda
+                  (lambda_literal
+                    body: (statements
+                      (statement
+                        (additive_expression
+                          (string_literal
+                            (string_content)
+                            (string_content)
+                            (string_content))
+                          (simple_identifier))))))))))))))
+
+================================================================================
+Try expression with catch on newline
+================================================================================
+
+try { main.immediate }
+catch (e: UnsupportedOperationException) { null }
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (statement
+    (try_expression
+      (block
+        (statements
+          (statement
+            (dot_qualified_expression
+              receiver: (simple_identifier)
+              selector: (simple_identifier)))))
+      (catch_block
+        name: (simple_identifier)
+        type: (user_type
+          (type_identifier))
+        body: (block
+          (statements
+            (statement
+              (null_literal))))))))
+
+================================================================================
+Newline after while
+================================================================================
+
+while (iterator.hasNext())
+  last = iterator.next()
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (statement
+    (while_statement
+      (call_expression
+        expression: (dot_qualified_expression
+          receiver: (simple_identifier)
+          selector: (simple_identifier))
+        args: (value_arguments))
+      (control_structure_body
+        (statement
+          (assignment
+            left: (simple_identifier)
+            right: (call_expression
+              expression: (dot_qualified_expression
+                receiver: (simple_identifier)
+                selector: (simple_identifier))
+              args: (value_arguments))))))))

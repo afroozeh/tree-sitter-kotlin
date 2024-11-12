@@ -93,6 +93,16 @@ module.exports = grammar({
     [$.inheritance_modifier, $._soft_keywords],
     [$.parameter_modifier, $._soft_keywords],
     [$.class_modifier, $._soft_keywords],
+    [$.use_site_target, $._soft_keywords],
+    [$.import_header, $._soft_keywords],
+    [$.variance_modifier, $._soft_keywords],
+    [$.reification_modifier, $._soft_keywords],
+    [$.getter, $._soft_keywords],
+    [$.setter, $._soft_keywords],
+
+    [$.type_parameter_modifiers],
+    [$.type_projection_modifiers],
+    [$.modifiers],
 
     // ambiguity between multiple user types and class property/function declarations
     [$.user_type],
@@ -124,7 +134,6 @@ module.exports = grammar({
     [$.annotated_expression, $.value_argument],
     [$.annotation],
     [$.variable_declaration],
-    [$.import_header, $._soft_keywords],
     [$.class_parameter],
     [$.collection_literal],
     // becuase of $._NL after simple_identifier, all can reduce
@@ -133,7 +142,11 @@ module.exports = grammar({
     [$.variable_declaration, $._simple_user_type],
     [$.value_argument],
     [$.property_declaration],
-    [$._enum_entries]
+    [$._enum_entries],
+    [$.type_constraints],
+    [$.class_declaration, $.type_constraints],
+    [$.type_constraints, $.property_declaration],
+    [$.do_while_statement]
   ],
 
   extras: $ => [
@@ -336,7 +349,7 @@ module.exports = grammar({
       optional(seq(repeat($._NL), ":", repeat($._NL), $._type))
     ),
 
-    type_constraints: $ => seq("where", sep1($.type_constraint, ",")),
+    type_constraints: $ => seq(repeat($._NL), "where", repeat($._NL), sep1($.type_constraint, repeat($._NL), ",", repeat($._NL))),
 
     type_constraint: $ => seq(
       repeat($.annotation),
@@ -418,7 +431,7 @@ module.exports = grammar({
 
     variable_declaration: $ => seq(
       // repeat($.annotation), TODO
-      field('id', choice($.simple_identifier, $._soft_keywords)),
+      field('id', $.simple_identifier),
       optional(field('type', seq(repeat($._NL), ":", repeat($._NL), $._type)))
     ),
 
@@ -441,7 +454,7 @@ module.exports = grammar({
       )
     ),
 
-    property_delegate: $ => seq("by", $.expression),
+    property_delegate: $ => seq("by", repeat($._NL), $.expression),
 
     getter: $ => prec.right(seq(
       optional(field('modifiers', $.modifiers)),
@@ -474,12 +487,12 @@ module.exports = grammar({
 
     parameter_with_optional_type: $ => seq(
       optional($.parameter_modifiers),
-      choice($.simple_identifier, $._soft_keywords),
+      $.simple_identifier,
       optional(seq(":", $._type))
     ),
 
     parameter: $ => seq(
-      field('name', choice($.simple_identifier, $._soft_keywords)), 
+      field('name', $.simple_identifier), 
       repeat($._NL),
       ":", 
       repeat($._NL),
@@ -589,6 +602,7 @@ module.exports = grammar({
       optional(seq($.user_type, choice($._DOT, "."))), // TODO: Support "real" types
       $.function_type_parameters,
       $._ARROW,
+      repeat($._NL),
       $._type
     ),
 
@@ -651,6 +665,7 @@ module.exports = grammar({
       "in",
       field('expression', $.expression),
       ")",
+      repeat($._NL),
       optional(field('body', $.control_structure_body))
     )),
 
@@ -659,12 +674,15 @@ module.exports = grammar({
       $._LPAR,
       $.expression,
       ")",
+      repeat($._NL),
       choice(";", $.control_structure_body)
     ),
 
     do_while_statement: $ => prec.right(seq(
       "do",
+      repeat($._NL),
       optional($.control_structure_body),
+      repeat($._NL),
       "while",
       $._LPAR,
       $.expression,
@@ -784,12 +802,14 @@ module.exports = grammar({
     conjunction_expression: $ => prec.left(PREC.CONJUNCTION, seq(
       field('left', $.expression), 
       $._CONJ,
+      repeat($._NL),
       field('right', $.expression))
     ),
 
     disjunction_expression: $ => prec.left(PREC.DISJUNCTION, seq(
       field('left', $.expression), 
       $._DISJ,
+      repeat($._NL),
       field('right', $.expression))
     ),
 
@@ -821,7 +841,7 @@ module.exports = grammar({
     value_argument: $ => seq(
       optional($.annotation),
       repeat($._NL),
-      optional(seq(choice($.simple_identifier, $._soft_keywords), repeat($._NL), $._ASSIGNMENT)),
+      optional(seq($.simple_identifier, repeat($._NL), $._ASSIGNMENT)),
       optional("*"),
       repeat($._NL),
       $.expression
@@ -830,7 +850,6 @@ module.exports = grammar({
     _primary_expression: $ => choice(
       $.parenthesized_expression,
       $.simple_identifier,
-      $._soft_keywords,
       $._literal_constant,
       $.string_literal,
       $.callable_reference,
@@ -846,7 +865,7 @@ module.exports = grammar({
       $.index_access_expression
     ),
 
-    parenthesized_expression: $ => seq($._LPAR, $.expression, ")"),
+    parenthesized_expression: $ => seq($._LPAR, $.expression, repeat($._NL), ")"),
 
     collection_literal: $ => seq(
       "[", 
@@ -911,14 +930,14 @@ module.exports = grammar({
     multi_line_string_content: $ => token(prec(PREC.STRING_CONTENT, /[^"$]+/)),
 
     _interpolation: $ => choice(
-      seq("${", alias($.expression, $.interpolated_expression), "}"),
+      seq("${", repeat($._NL), alias($.expression, $.interpolated_expression), repeat($._NL), "}"),
       seq("$", alias($.simple_identifier, $.interpolated_identifier))
     ),
 
     lambda_literal: $ => seq(
       "{",
       repeat($._NL),
-      optional(seq(optional(field('parameters', $.lambda_parameters)), $._ARROW)),
+      optional(seq(optional(field('parameters', $.lambda_parameters)), $._ARROW, repeat($._NL))),
       optional(field('body', $.statements)),
       "}"
     ),
@@ -1044,10 +1063,11 @@ module.exports = grammar({
 
     try_expression: $ => prec.right(seq(
       "try",
+      repeat($._NL),
       $.block,
       choice(
-        seq(repeat1($.catch_block), optional($.finally_block)),
-        $.finally_block
+        seq(repeat($._NL), repeat1($.catch_block), optional($.finally_block)),
+        seq(repeat($._NL), $.finally_block)
       )
     )),
 
@@ -1104,7 +1124,7 @@ module.exports = grammar({
       choice(
         $.dot_qualified_expression,
         $.index_access_expression,
-        choice($.simple_identifier, $._soft_keywords),
+        $.simple_identifier,
         $.postfix_expression,
       )
     ),
@@ -1233,9 +1253,9 @@ module.exports = grammar({
     // Identifiers
     // ==========
 
-    simple_identifier: $ => $._lexical_identifier,
+    simple_identifier: $ => choice($._lexical_identifier, $._soft_keywords),
 
-    _soft_keywords: $ => alias(choice(
+    _soft_keywords: $ => choice(
       "by",
       "catch",
       "constructor",
@@ -1280,8 +1300,7 @@ module.exports = grammar({
       "sealed",
       "suspend",
       "tailrec",
-      "vararg"
-    ), $.simple_identifier),
+      "vararg"),
 
     identifier: $ => sep1($.simple_identifier, "."),
 
@@ -1388,11 +1407,11 @@ module.exports = grammar({
     _DOT: $ => /\s+\./,
     _SAFE_DOT: $ => /\s*\?\./,
     _ELVIS: $ => /\s*\?:/,
-    _CONJ: $ => /\s*&&\s*/,
-    _DISJ: $ => /\s*\|\|\s*/,
+    _CONJ: $ => /\s*&&/,
+    _DISJ: $ => /\s*\|\|/,
     _NL: $ => /\r?\n/,
     _ELSE: $ => token(prec(1, /\s*else\s*/)),
-    _ARROW: $ => /\s*->\s*/,
+    _ARROW: $ => /\s*->/,
     _LPAR: $ => /\(\s*/,
     _ASSIGNMENT: $ => /=\s*/,
     _semi: $ => seq(choice(";", $._NL), repeat($._NL)),
