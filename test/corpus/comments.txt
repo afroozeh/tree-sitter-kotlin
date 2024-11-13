@@ -41,18 +41,17 @@ class Foo {}
 --------------------------------------------------------------------------------
 
 (source_file
-  (import_list
-    (import_header
-      name: (identifier
-        (simple_identifier)
-        (simple_identifier)
-        (simple_identifier)))
-    (import_header
-      name: (identifier
-        (simple_identifier)
-        (simple_identifier)
-        (simple_identifier))
-      (line_comment)))
+  (import_header
+    name: (identifier
+      (simple_identifier)
+      (simple_identifier)
+      (simple_identifier)))
+  (import_header
+    name: (identifier
+      (simple_identifier)
+      (simple_identifier)
+      (simple_identifier)))
+  (line_comment)
   (class_declaration
     name: (simple_identifier)
     body: (class_body)))
@@ -70,18 +69,17 @@ class Foo {}
 --------------------------------------------------------------------------------
 
 (source_file
-  (import_list
-    (import_header
-      name: (identifier
-        (simple_identifier)
-        (simple_identifier)
-        (simple_identifier)))
-    (import_header
-      name: (identifier
-        (simple_identifier)
-        (simple_identifier)
-        (simple_identifier))
-      (multiline_comment)))
+  (import_header
+    name: (identifier
+      (simple_identifier)
+      (simple_identifier)
+      (simple_identifier)))
+  (import_header
+    name: (identifier
+      (simple_identifier)
+      (simple_identifier)
+      (simple_identifier)))
+  (multiline_comment)
   (class_declaration
     name: (simple_identifier)
     body: (class_body)))
@@ -101,18 +99,17 @@ class Foo {}
 --------------------------------------------------------------------------------
 
 (source_file
-  (import_list
-    (import_header
-      name: (identifier
-        (simple_identifier)
-        (simple_identifier)
-        (simple_identifier)))
-    (import_header
-      name: (identifier
-        (simple_identifier)
-        (simple_identifier)
-        (simple_identifier))
-      (multiline_comment)))
+  (import_header
+    name: (identifier
+      (simple_identifier)
+      (simple_identifier)
+      (simple_identifier)))
+  (import_header
+    name: (identifier
+      (simple_identifier)
+      (simple_identifier)
+      (simple_identifier)))
+  (multiline_comment)
   (class_declaration
     name: (simple_identifier)
     body: (class_body)))
@@ -160,3 +157,69 @@ f(1 //line comment
             (line_comment)
             (multiline_comment)
             (integer_literal)))))))
+
+================================================================================
+Comments before constructor parameter
+================================================================================
+
+public data class PluginName(
+    /**
+     * Plugin name.
+     */
+    val pluginName: String
+) : AbstractCoroutineContextElement(PluginName) {
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (class_declaration
+    modifiers: (modifiers
+      (visibility_modifier)
+      (class_modifier))
+    name: (simple_identifier)
+    (primary_constructor
+      (class_parameters
+        (multiline_comment)
+        (class_parameter
+          binding_pattern: (binding_pattern_kind)
+          name: (simple_identifier)
+          type: (user_type
+            (type_identifier)))))
+    (delegation_specifier
+      (constructor_invocation
+        (user_type
+          (type_identifier))
+        (value_arguments
+          (value_argument
+            (simple_identifier)))))
+    body: (class_body)))
+
+================================================================================
+Comment between imports
+================================================================================
+
+/* this is a comment */
+import a.b.c
+/* this is a comment */
+/* this is a comment */
+import x.y.z
+/* this is a comment */
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (multiline_comment)
+  (import_header
+    name: (identifier
+      (simple_identifier)
+      (simple_identifier)
+      (simple_identifier)))
+  (multiline_comment)
+  (multiline_comment)
+  (import_header
+    name: (identifier
+      (simple_identifier)
+      (simple_identifier)
+      (simple_identifier)))
+  (multiline_comment))
