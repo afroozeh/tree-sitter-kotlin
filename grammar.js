@@ -98,6 +98,7 @@ module.exports = grammar({
     [$.reification_modifier, $._soft_keywords],
     [$.getter, $._soft_keywords],
     [$.setter, $._soft_keywords],
+    [$.enum_class_declaration, $._soft_keywords],
 
     [$.type_parameter_modifiers],
     [$.type_projection_modifiers],
@@ -150,6 +151,7 @@ module.exports = grammar({
     [$.explicit_delegation, $._primary_expression],
     [$.function_value_parameters],
     [$.class_parameters],
+    [$.source_file]
   ],
 
   extras: $ => [
@@ -185,12 +187,14 @@ module.exports = grammar({
       repeat($._NL),
       optional($.shebang_line),
       repeat($.file_annotation),
+      repeat($._NL),
       optional($.package_header),
-      repeat(seq($.import_header, optional($._semi))),
+      repeat($._NL),
+      repeat(seq($.import_header, optional(seq($._semi, repeat($._NL))))),
       // In principle, we either parse a Kotlin file (.kt) or a Kotlin script (.kts).
       // Statements cannot appear as top-level constructs in Kotlin files, only in scripts.
       // However, here, we're allowing parsing of both statements and declarations as top level.
-      repeat(choice($._top_level_object, alias($._top_level_statement, $.statement)))
+      repeat(choice($._top_level_object, $._top_level_statements))
     ),
 
     shebang_line: $ => seq("#!", /[^\r\n]*/),
@@ -201,10 +205,10 @@ module.exports = grammar({
         seq("[", repeat1($._unescaped_annotation), "]"),
         $._unescaped_annotation
       ),
-      $._semi
+      $._semi,
     ),
 
-    package_header: $ => seq("package", $.identifier, $._semi),
+    package_header: $ => prec.right(seq("package", $.identifier, optional($._semi))),
 
     import_header: $ => prec.left(seq(
       "import",
@@ -216,7 +220,10 @@ module.exports = grammar({
 
     _import_alias: $ => seq("as", field('alias', $.simple_identifier)),
 
-    _top_level_object: $ => seq($._declaration, optional($._semi)),
+    _top_level_object: $ => seq($._declaration, repeat($._semi)),
+
+    _top_level_statements: $ =>
+      repeat1(seq(alias($._top_level_statement, $.statement), repeat($._semi))),
 
     _top_level_statement: $ => seq(
       choice(
@@ -371,7 +378,7 @@ module.exports = grammar({
 
     _class_member_declarations: $ => repeat1(seq(
       $._class_member_declaration, 
-      optional($._semi)
+      optional(seq($._semi, repeat($._NL))),
     )),
 
     _class_member_declaration: $ => choice(
@@ -635,16 +642,15 @@ module.exports = grammar({
     // ==========
 
     statements: $ => seq(
-      sep1($.statement, $._semis),
-      optional($._semis)
+      sep1($.statement, repeat($._semi)),
+      repeat($._semi)
     ),
 
     statement: $ => choice(
       $._declaration,
       $.assignment,
       $._loop_statement,
-      $.expression
-    ),
+      $.expression),
 
     label: $ => token(seq(
       /[a-zA-Z_][a-zA-Z_0-9]*/,
@@ -1084,7 +1090,7 @@ module.exports = grammar({
       $._ARROW,
       repeat($._NL),
       $.control_structure_body,
-      optional($._semi)
+      optional(seq($._semi, repeat($._NL)))
     ),
 
     when_condition: $ => choice(
@@ -1449,7 +1455,7 @@ module.exports = grammar({
     _ELSE: $ => token(prec(1, /\s*else\s*/)),
     _ARROW: $ => /\s*->/,
     _ASSIGNMENT: $ => /=\s*/,
-    _semi: $ => seq(choice(";", $._NL), repeat($._NL)),
+    _semi: $ => choice(";", $._NL),
     _semis: $ => repeat1(choice(";", $._NL)),
 
     line_comment: $ => token(seq('//', /[^\r\n]*/)),

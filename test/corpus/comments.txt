@@ -20,13 +20,13 @@ Comments
   (statement
     (additive_expression
       (integer_literal)
-      (integer_literal))
-    (line_comment)
+      (integer_literal)))
+  (line_comment)
+  (multiline_comment
     (multiline_comment
-      (multiline_comment
-        (multiline_comment)))
-    (line_comment)
-    (multiline_comment)))
+      (multiline_comment)))
+  (line_comment)
+  (multiline_comment))
 
 ================================================================================
 Comment after imports
@@ -223,3 +223,60 @@ import x.y.z
       (simple_identifier)
       (simple_identifier)))
   (multiline_comment))
+
+
+================================================================================
+Comments between top-level statements
+================================================================================
+
+// aaa
+a
+/**
+  b
+  b
+*/ 
+b
+// ccc
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (line_comment)
+  (statement
+    (simple_identifier))
+  (multiline_comment)
+  (statement
+    (simple_identifier))
+  (line_comment))
+
+================================================================================
+Comments between block statements
+================================================================================
+
+fun f() {
+  // aaa
+  a
+  /**
+   b
+   b
+  */ 
+  b
+  // ccc
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    name: (simple_identifier)
+    parameters: (function_value_parameters)
+    body: (function_body
+      (block
+        (line_comment)
+        (statements
+          (statement
+            (simple_identifier))
+          (multiline_comment)
+          (statement
+            (simple_identifier))
+          (line_comment))))))
