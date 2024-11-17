@@ -98,7 +98,6 @@ module.exports = grammar({
     [$.reification_modifier, $._soft_keywords],
     [$.getter, $._soft_keywords],
     [$.setter, $._soft_keywords],
-    [$.enum_class_declaration, $._soft_keywords],
 
     [$.type_parameter_modifiers],
     [$.type_projection_modifiers],
@@ -122,8 +121,6 @@ module.exports = grammar({
     // By defining a conflict here, we let the parser to continue. The second path
     // eventually dies if there is no '.'
     [$.identifier],
-
-    [$.expression, $.call_expression],
 
     [$._simple_user_type, $._common_primary_expression],
 
@@ -151,7 +148,22 @@ module.exports = grammar({
     [$.explicit_delegation, $._primary_expression],
     [$.function_value_parameters],
     [$.class_parameters],
-    [$.source_file]
+    [$.source_file],
+    [$._type_reference, $.function_type],
+    [$._type_reference, $.parenthesized_user_type],
+    [$.type_arguments, $._comparison_operator],
+    [$.call_expression, $.prefix_expression, $.comparison_expression],
+    [$.call_expression, $.elvis_expression, $.comparison_expression],
+    [$.call_expression, $.range_expression, $.comparison_expression],
+    [$.call_expression, $.check_expression, $.comparison_expression],
+    [$.call_expression, $.additive_expression, $.comparison_expression],
+    [$.call_expression, $.multiplicative_expression, $.comparison_expression],
+    [$.call_expression, $.infix_expression, $.comparison_expression],
+    [$.annotated_lambda, $.modifiers],
+    [$.return_expression],
+    [$.lambda_literal],
+    [$.when_entry],
+    [$.function_type_parameters, $.parenthesized_type]
   ],
 
   extras: $ => [
@@ -240,7 +252,8 @@ module.exports = grammar({
       alias($.simple_identifier, $.type_identifier),
       optional($.type_parameters),
       repeat($._NL),
-      $._ASSIGNMENT,
+      "=",
+      repeat($._NL),
       $._type
     )),
 
@@ -309,7 +322,7 @@ module.exports = grammar({
       field('name', $.simple_identifier),
       ":",
       field('type', $._type),
-      optional(seq(repeat($._NL), $._ASSIGNMENT, field('initializer', $.expression)))
+      optional(seq(repeat($._NL), "=", repeat($._NL), field('initializer', $.expression)))
     ),
 
     binding_pattern_kind: $ => choice("val", "var"),
@@ -412,7 +425,7 @@ module.exports = grammar({
     function_value_parameter: $ => seq(
       optional(field('modifiers', $.parameter_modifiers)),
       field('parameter', $.parameter),
-      optional(seq($._ASSIGNMENT, field('initializer', $.expression)))
+      optional(seq("=", repeat($._NL), field('initializer', $.expression)))
     ),
 
     receiver_type: $ => seq(
@@ -439,7 +452,7 @@ module.exports = grammar({
 
     function_body: $ => choice(
       $.block, 
-      seq($._ASSIGNMENT, field('expression', $.expression))
+      seq("=", repeat($._NL), field('expression', $.expression))
     ),
 
     variable_declaration: $ => seq(
@@ -456,7 +469,7 @@ module.exports = grammar({
       field('var_decl', choice($.variable_declaration, $.multi_variable_declaration)),
       optional(field('type_constraints', $.type_constraints)),
       optional(choice(
-        seq($._ASSIGNMENT, field('initializer', $.expression)),
+        seq("=", repeat($._NL), field('initializer', $.expression)),
         $.property_delegate
       )),
       repeat($._NL),
@@ -576,10 +589,10 @@ module.exports = grammar({
     ),
 
     // Give type reference a higher precedence to resolve conflict with parenthesized expression
-    _type_reference: $ => prec(PREC.TYPE_REFERENCE, choice(
+    _type_reference: $ => choice(
       field('type', $.user_type),
       "dynamic"
-    )),
+    ),
 
     not_nullable_type: $ => seq(
       optional($.type_modifiers),
@@ -615,18 +628,19 @@ module.exports = grammar({
     function_type: $ => seq(
       optional(seq($.user_type, choice($._DOT, "."))), // TODO: Support "real" types
       $.function_type_parameters,
-      $._ARROW,
+      repeat($._NL),
+      "->",
       repeat($._NL),
       $._type
     ),
 
     // A higher-than-default precedence resolves the ambiguity with 'parenthesized_type'
-    function_type_parameters: $ => prec.left(1, seq(
+    function_type_parameters: $ => seq(
       "(",
       repeat($._NL),
       optional(sep1(choice($.parameter, $._type), ",")),
       ")"
-    )),
+    ),
 
     parenthesized_type: $ => seq("(", repeat($._NL), $._type, ")"),
 
@@ -642,7 +656,7 @@ module.exports = grammar({
     // ==========
 
     statements: $ => seq(
-      sep1($.statement, repeat($._semi)),
+      sep1($.statement, repeat1($._semi)),
       repeat($._semi)
     ),
 
@@ -710,7 +724,8 @@ module.exports = grammar({
     assignment: $ =>
       prec.left(PREC.ASSIGNMENT, seq(
         field('left', $._directly_assignable_expression),
-        field('op', choice($._ASSIGNMENT, $._assignment_and_operator)),
+        field('op', $._assignment_and_operator),
+        repeat($._NL),
         field('right', $.expression))),
 
     // ==========
@@ -730,16 +745,17 @@ module.exports = grammar({
       $.postfix_expression,
       $.as_expression,
       $.spread_expression,
-      $.jump_expression,
       $.annotated_expression,
       $.labeled_expression,
-      $.if_expression
+      $.if_expression,
+      $.return_expression,
+      $.throw_expression
     ),
 
     postfix_expression: $ => prec(PREC.POSTFIX, seq(field('expression', $.expression), field('operator', $.postfix_unary_operator))),
 
     dot_qualified_expression: $ => prec(PREC.DOT, seq(
-      field('receiver', choice($._primary_expression, $.postfix_expression)),
+      field('receiver', choice($.expression)),
       choice(choice($._DOT, "."), $._safe_dot),
       repeat($._NL),
       field('selector', choice(
@@ -749,11 +765,11 @@ module.exports = grammar({
       ))
     )),
 
-    call_expression: $ => seq(
-      field('expression', $._primary_expression), 
+    call_expression: $ => prec(PREC.CALL, seq(
+      field('expression', $.expression), 
       optional($.type_arguments),
       $._call_arguments
-    ),
+    )),
 
     // It's not possible to resolve the ambiguity between explicit delegation and calls with last lambda argument.
     // For example:
@@ -766,8 +782,8 @@ module.exports = grammar({
     // associativity for the arguments, which is not posssible to specify with tree-sitter. 
     // Creating a separate nonterminal, is the cleanest way to move forward.
     // 
-    simple_call_expression: $=> prec(10, seq(
-      field('expression', $._primary_expression), 
+    simple_call_expression: $=> prec(PREC.CALL, seq(
+      field('expression', $.expression), 
       optional($.type_arguments),
       field('args', $.value_arguments)
     )),
@@ -877,7 +893,7 @@ module.exports = grammar({
     value_argument: $ => seq(
       optional($.annotation),
       repeat($._NL),
-      optional(seq($.simple_identifier, repeat($._NL), $._ASSIGNMENT)),
+      optional(seq($.simple_identifier, repeat($._NL), "=", repeat($._NL))),
       optional("*"),
       repeat($._NL),
       $.expression
@@ -902,7 +918,9 @@ module.exports = grammar({
       $.when_expression,
       $.try_expression,
       $.dot_qualified_expression,
-      $.index_access_expression
+      $.index_access_expression,
+      $.continue_expression,
+      $.break_expression
     ),
 
     parenthesized_expression: $ => seq("(", repeat($._NL), $.expression, repeat($._NL), ")"),
@@ -977,7 +995,7 @@ module.exports = grammar({
     lambda_literal: $ => seq(
       "{",
       repeat($._NL),
-      optional(seq(optional(field('parameters', $.lambda_parameters)), $._ARROW, repeat($._NL))),
+      optional(seq(optional(field('parameters', $.lambda_parameters)), repeat($._NL), "->", repeat($._NL))),
       optional(field('body', $.statements)),
       "}"
     ),
@@ -1062,7 +1080,8 @@ module.exports = grammar({
         repeat($.annotation),
         "val",
         $.variable_declaration,
-        $._ASSIGNMENT
+        "=",
+        repeat($._NL),
       )),
       $.expression,
       ")",
@@ -1087,7 +1106,8 @@ module.exports = grammar({
         ),
         $._ELSE
       ),
-      $._ARROW,
+      repeat($._NL),
+      "->",
       repeat($._NL),
       $.control_structure_body,
       optional(seq($._semi, repeat($._NL)))
@@ -1127,13 +1147,23 @@ module.exports = grammar({
 
     finally_block: $ => seq("finally", $.block),
 
-    jump_expression: $ => choice(
-      prec.right(PREC.RETURN_OR_THROW, seq("throw", $.expression)),
-      prec.right(PREC.RETURN_OR_THROW, seq(choice("return", $._return_at), optional($.expression))),
+    return_expression: $ => prec(PREC.RETURN_OR_THROW, seq(
+      choice("return", seq("return@", $._lexical_identifier)), 
+      optional($.expression)
+    )),
+
+    throw_expression: $ => prec(PREC.RETURN_OR_THROW, seq(
+      "throw", $.expression,
+    )),
+
+    continue_expression: $ => choice(
       "continue",
-      $._continue_at,
+      seq("continue@", $._lexical_identifier)
+    ),
+
+    break_expression: $ => choice(
       "break",
-      $._break_at
+      seq("break@", $._lexical_identifier)
     ),
 
     callable_reference: $ => prec(PREC.DOT, seq(
@@ -1142,7 +1172,7 @@ module.exports = grammar({
       choice($.simple_identifier, "class")
     )),
 
-    _assignment_and_operator: $ => choice("+=", "-=", "*=", "/=", "%="),
+    _assignment_and_operator: $ => choice("=", "+=", "-=", "*=", "/=", "%="),
 
     _equality_operator: $ => choice("!=", "!==", "==", "==="),
 
@@ -1355,21 +1385,6 @@ module.exports = grammar({
     // Keywords
     // ==========
 
-    _return_at: $ => seq(
-      "return@",
-      alias($._lexical_identifier, $.label)
-    ),
-
-    _continue_at: $ => seq(
-      "continue@",
-      alias($._lexical_identifier, $.label)
-    ),
-
-    _break_at: $ => seq(
-      "break@",
-      alias($._lexical_identifier, $.label)
-    ),
-
     _this_at: $ => seq(
       "this@",
       alias($._lexical_identifier, $.type_identifier)
@@ -1447,14 +1462,12 @@ module.exports = grammar({
 
     _backtick_identifier: $ => /`[^\r\n`]+`/,
 
-    _DOT: $ => /\s+\./,
+    _DOT: $ => /\s*\./,
     _ELVIS: $ => /\s*\?:/,
     _CONJ: $ => /\s*&&/,
     _DISJ: $ => /\s*\|\|/,
     _NL: $ => /\r?\n/,
     _ELSE: $ => token(prec(1, /\s*else\s*/)),
-    _ARROW: $ => /\s*->/,
-    _ASSIGNMENT: $ => /=\s*/,
     _semi: $ => choice(";", $._NL),
     _semis: $ => repeat1(choice(";", $._NL)),
 
