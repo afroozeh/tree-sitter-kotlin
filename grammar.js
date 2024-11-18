@@ -166,7 +166,13 @@ module.exports = grammar({
     [$.function_type_parameters, $.parenthesized_type],
     [$._setter_getter],
     [$.if_expression],
-    [$.while_statement, $._if_block]
+    [$.while_statement, $._if_block],
+    [$.secondary_constructor],
+    [$.type_parameter],
+    [$.explicit_delegation, $._unary_expression],
+    [$.class_body, $._semi],
+    [$.parameter, $._simple_user_type],
+    [$.function_type_parameters]
   ],
 
   extras: $ => [
@@ -180,6 +186,7 @@ module.exports = grammar({
     $._bin_plus,
     $._safe_dot,
     $._elvis,
+    $._dot
   ],
 
   supertypes: $ => [
@@ -360,13 +367,19 @@ module.exports = grammar({
       ),
       "by",
       repeat($._NL),
-      choice($._common_primary_expression, alias($.simple_call_expression, $.call_expression))
+      choice(
+        $._common_primary_expression, 
+        alias($.simple_call_expression, $.call_expression),
+        $.as_expression
+      )
     ),
 
     type_parameters: $ => seq(
       repeat($._NL),
       "<", 
-      sep1($.type_parameter, ","), 
+      repeat($._NL),
+      sep1($.type_parameter, repeat($._NL), ",", repeat($._NL)), 
+      repeat($._NL),
       ">"
     ),
 
@@ -392,9 +405,9 @@ module.exports = grammar({
     // Class members
     // ==========
 
-    _class_member_declarations: $ => repeat1(seq(
-      $._class_member_declaration, 
-      optional(seq($._semi, repeat($._NL))),
+    _class_member_declarations: $ => repeat1(choice(
+      $._class_member_declaration,
+      $._semi
     )),
 
     _class_member_declaration: $ => choice(
@@ -444,7 +457,7 @@ module.exports = grammar({
       optional(field('modifiers', $.modifiers)),
       "fun",
       optional($.type_parameters),
-      optional(seq(repeat($._NL), field('receiver_type', $.receiver_type), repeat($._NL), optional('.'))),
+      optional(seq(repeat($._NL), field('receiver_type', $.receiver_type), repeat($._NL), optional(choice($._dot, '.')))),
       field('name', $.simple_identifier),
       field('parameters', $.function_value_parameters),
       optional(seq(repeat($._NL), ":", repeat($._NL), field('type', $._type))),
@@ -468,7 +481,7 @@ module.exports = grammar({
       optional(field('modifiers', $.modifiers)),
       $.binding_pattern_kind,
       optional(field('type_parameters', $.type_parameters)),
-      optional(seq(field('receiver_type', $.receiver_type), '.')),
+      optional(seq(field('receiver_type', $.receiver_type), choice($._dot, '.'))),
       field('var_decl', choice($.variable_declaration, $.multi_variable_declaration)),
       optional(field('type_constraints', $.type_constraints)),
       optional(choice(
@@ -545,8 +558,9 @@ module.exports = grammar({
     secondary_constructor: $ => seq(
       optional(field('modifiers', $.modifiers)),
       "constructor",
+      repeat($._NL),
       field('parameters', $.function_value_parameters),
-      optional(seq(":", $.constructor_delegation_call)),
+      optional(seq(repeat($._NL), ":", repeat($._NL), $.constructor_delegation_call)),
       optional(field('block', $.block))
     ),
 
@@ -614,7 +628,7 @@ module.exports = grammar({
     ),
 
     user_type: $ => seq(
-      $._simple_user_type, repeat(seq(choice($._DOT, "."), repeat($._NL), $._simple_user_type))
+      $._simple_user_type, repeat(seq(choice($._dot, "."), repeat($._NL), $._simple_user_type))
     ),
 
     _simple_user_type: $ => seq(
@@ -632,7 +646,7 @@ module.exports = grammar({
     _type_projection_modifier: $ => $.variance_modifier,
 
     function_type: $ => seq(
-      optional(seq($.user_type, choice($._DOT, "."))), // TODO: Support "real" types
+      optional(seq($.user_type, choice($._dot, "."))), // TODO: Support "real" types
       $.function_type_parameters,
       repeat($._NL),
       "->",
@@ -644,7 +658,8 @@ module.exports = grammar({
     function_type_parameters: $ => seq(
       "(",
       repeat($._NL),
-      optional(sep1(choice($.parameter, $._type), ",")),
+      optional(sep1(choice($.parameter, $._type), repeat($._NL), ",", repeat($._NL))),
+      repeat($._NL),
       ")"
     ),
 
@@ -654,6 +669,7 @@ module.exports = grammar({
       "(",
       repeat($._NL),
       choice($.user_type, $.parenthesized_user_type),
+      repeat($._NL),
       ")"
     ),
 
@@ -696,8 +712,11 @@ module.exports = grammar({
       repeat($._NL),
       repeat($.annotation),
       field('var_decl', choice($.variable_declaration, $.multi_variable_declaration)),
+      repeat($._NL),
       "in",
+      repeat($._NL),
       field('expression', $.expression),
+      repeat($._NL),
       ")",
       repeat($._NL),
       optional(field('body', $._if_block))
@@ -707,7 +726,8 @@ module.exports = grammar({
       "while",
       "(",
       repeat($._NL),
-      $.expression,
+      field('expression', $.expression),
+      repeat($._NL),
       ")",
       repeat($._NL),
       choice(";", $._if_block)
@@ -760,7 +780,7 @@ module.exports = grammar({
 
     dot_qualified_expression: $ => prec(PREC.DOT, seq(
       field('receiver', choice($.expression)),
-      choice(choice($._DOT, "."), $._safe_dot),
+      choice(choice($._dot, "."), $._safe_dot),
       repeat($._NL),
       field('selector', choice(
         $.simple_identifier,
@@ -880,7 +900,13 @@ module.exports = grammar({
     // Here we're defining a dynamic precedence for type arguments to resolve the ambiguity
     // between the comparison and generic call syntax.
     // Any expression such as a<b>(c) should be resolved in favor of the generic call.
-    type_arguments: $ => prec.dynamic(PREC.GENERIC, seq("<", sep1($.type_projection, ","), ">")),
+    type_arguments: $ => prec.dynamic(PREC.GENERIC, seq(
+      "<", 
+      repeat($._NL),
+      sep1($.type_projection, repeat($._NL), ",", repeat($._NL)), 
+      repeat($._NL),
+      ">"
+    )),
 
     value_arguments: $ => seq(
       "(",
@@ -1465,7 +1491,6 @@ module.exports = grammar({
 
     _backtick_identifier: $ => /`[^\r\n`]+`/,
 
-    _DOT: $ => /\s*\./,
     _CONJ: $ => /\s*&&/,
     _DISJ: $ => /\s*\|\|/,
     _NL: $ => /\r?\n/,

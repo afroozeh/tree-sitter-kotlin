@@ -705,7 +705,7 @@ while (iterator.hasNext())
 (source_file
   (statement
     (while_statement
-      (call_expression
+      expression: (call_expression
         expression: (dot_qualified_expression
           receiver: (simple_identifier)
           selector: (simple_identifier))
@@ -784,3 +784,204 @@ when (val animatedImage = state) {
             (value_argument
               (string_literal
                 (string_content)))))))))
+
+================================================================================
+Colon on newline after secondary constructor
+================================================================================
+
+class A {
+  constructor(a: Stirng)
+    : this(a)
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (class_declaration
+    name: (simple_identifier)
+    body: (class_body
+      (secondary_constructor
+        parameters: (function_value_parameters
+          (function_value_parameter
+            parameter: (parameter
+              name: (simple_identifier)
+              type: (user_type
+                (type_identifier)))))
+        (constructor_delegation_call
+          (value_arguments
+            (value_argument
+              (simple_identifier))))))))
+
+================================================================================
+Newline in type parameters
+================================================================================
+
+abstract class UserTypeBuilder<
+        TType : UserType,
+        TBuilder : UserType.UserTypeBuilder<TType, TBuilder>
+> internal constructor(
+        type: TType
+) : AbstractUserElementBuilder<TType, TBuilder>(type.mixin)
+
+--------------------------------------------------------------------------------
+(source_file
+  (class_declaration
+    modifiers: (modifiers
+      (inheritance_modifier))
+    name: (simple_identifier)
+    (type_parameters
+      (type_parameter
+        (type_identifier)
+        type: (user_type
+          (type_identifier)))
+      (type_parameter
+        (type_identifier)
+        type: (user_type
+          (type_identifier)
+          (type_identifier)
+          (type_arguments
+            (type_projection
+              type: (user_type
+                (type_identifier)))
+            (type_projection
+              type: (user_type
+                (type_identifier)))))))
+    (primary_constructor
+      modifiers: (modifiers
+        (visibility_modifier))
+      (class_parameters
+        (class_parameter
+          name: (simple_identifier)
+          type: (user_type
+            (type_identifier)))))
+    (delegation_specifier
+      (constructor_invocation
+        (user_type
+          (type_identifier)
+          (type_arguments
+            (type_projection
+              type: (user_type
+                (type_identifier)))
+            (type_projection
+              type: (user_type
+                (type_identifier)))))
+        (value_arguments
+          (value_argument
+            (dot_qualified_expression
+              receiver: (simple_identifier)
+              selector: (simple_identifier))))))))
+
+================================================================================
+Function type parameters on new line
+================================================================================
+
+fun f(
+	onNoWaiterSuspend: (
+      segm: ChannelSegment<E>,
+      i: Int,
+      element: E,
+      s: Long
+  ) -> R = { _, _, _, _ -> error("unexpected") }) {
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    name: (simple_identifier)
+    parameters: (function_value_parameters
+      (function_value_parameter
+        parameter: (parameter
+          name: (simple_identifier)
+          type: (function_type
+            (function_type_parameters
+              (parameter
+                name: (simple_identifier)
+                type: (user_type
+                  (type_identifier)
+                  (type_arguments
+                    (type_projection
+                      type: (user_type
+                        (type_identifier))))))
+              (parameter
+                name: (simple_identifier)
+                type: (user_type
+                  (type_identifier)))
+              (parameter
+                name: (simple_identifier)
+                type: (user_type
+                  (type_identifier)))
+              (parameter
+                name: (simple_identifier)
+                type: (user_type
+                  (type_identifier))))
+            type: (user_type
+              (type_identifier))))
+        initializer: (lambda_literal
+          parameters: (lambda_parameters
+            (variable_declaration
+              id: (simple_identifier))
+            (variable_declaration
+              id: (simple_identifier))
+            (variable_declaration
+              id: (simple_identifier))
+            (variable_declaration
+              id: (simple_identifier)))
+          body: (statements
+            (statement
+              (call_expression
+                expression: (simple_identifier)
+                args: (value_arguments
+                  (value_argument
+                    (string_literal
+                      (string_content))))))))))
+    body: (function_body
+      (block))))
+
+
+================================================================================
+Newline on type arguments
+================================================================================
+
+internal object TransformRequestBodyHook : ClientHook<
+    suspend TransformRequestBodyContext.(
+        request: HttpRequestBuilder,
+        content: Any,
+        bodyType: TypeInfo?
+    ) -> OutgoingContent?> {
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (object_declaration
+    modifiers: (modifiers
+      (visibility_modifier))
+    name: (simple_identifier)
+    (delegation_specifier
+      (user_type
+        (type_identifier)
+        (type_arguments
+          (type_projection
+            (type_modifiers)
+            (function_type
+              (user_type
+                (type_identifier))
+              (function_type_parameters
+                (parameter
+                  name: (simple_identifier)
+                  type: (user_type
+                    (type_identifier)))
+                (parameter
+                  name: (simple_identifier)
+                  type: (user_type
+                    (type_identifier)))
+                (parameter
+                  name: (simple_identifier)
+                  type: (nullable_type
+                    type: (user_type
+                      (type_identifier)))))
+              (nullable_type
+                type: (user_type
+                  (type_identifier))))))))
+    body: (class_body)))
