@@ -74,20 +74,23 @@ class Strings {
     name: (simple_identifier)
     body: (class_body
       (function_declaration
-       name: (simple_identifier)
-       parameters: (function_value_parameters)
-       body: (function_body
-        expression: (string_literal 
-          (string_content))))
+        name: (simple_identifier)
+        parameters: (function_value_parameters)
+        body: (function_body
+          expression: (string_literal
+            (string_content))))
       (function_declaration
-       name: (simple_identifier)
-       parameters: (function_value_parameters)
-       body: (function_body
-        expression: (additive_expression
-          (additive_expression
-              (string_literal (string_content))
-              (string_literal (string_content)))
-            (string_literal (string_content))))))))
+        name: (simple_identifier)
+        parameters: (function_value_parameters)
+        body: (function_body
+          expression: (additive_expression
+            (additive_expression
+              (string_literal
+                (string_content))
+              (string_literal
+                (string_content)))
+            (string_literal
+              (string_content))))))))
 
 ================================================================================
 Class with modifiers

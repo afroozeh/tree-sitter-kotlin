@@ -50,7 +50,6 @@ const PREC = {
   BLOCK: 1,
   ARGUMENTS: 1,
   STRING_CONTENT: 1,
-  RETURN_OR_THROW: 0,
 };
 const DEC_DIGITS = token(sep1(/[0-9]+/, /_+/));
 const HEX_DIGITS = token(sep1(/[0-9a-fA-F]+/, /_+/));
@@ -70,7 +69,7 @@ const DOLLAR_IN_STRING_CONTENT = token(/\$[^\p{L}_{"]+/);
 
 const QUOTE_IN_MULTI_LINE_STRING_CONTENT = token(/"[^"]|""[^"]/);
 
-const NON_NL_WHITESPACE = /[\t\v\f \u00a0\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u200b\u2028\u2029\u3000]+/;
+const NON_NL_WHITESPACE = /[ \t\v\f\u00a0\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u200b\u2028\u2029\u3000]/;
 
 module.exports = grammar({
   name: "kotlin",
@@ -98,6 +97,7 @@ module.exports = grammar({
     [$.reification_modifier, $._soft_keywords],
     [$.getter, $._soft_keywords],
     [$.setter, $._soft_keywords],
+    [$.enum_class_declaration, $._soft_keywords],
 
     [$.type_parameter_modifiers],
     [$.type_projection_modifiers],
@@ -142,7 +142,6 @@ module.exports = grammar({
     [$._enum_entries],
     [$.type_constraints],
     [$.class_declaration, $.type_constraints],
-    [$.type_constraints, $.property_declaration],
     [$.do_while_statement],
     [$._delegation_specifiers],
     [$.explicit_delegation, $._primary_expression],
@@ -160,25 +159,28 @@ module.exports = grammar({
     [$.call_expression, $.multiplicative_expression, $.comparison_expression],
     [$.call_expression, $.infix_expression, $.comparison_expression],
     [$.annotated_lambda, $.modifiers],
-    [$.return_expression],
     [$.lambda_literal],
-    [$.when_entry],
     [$.function_type_parameters, $.parenthesized_type],
     [$._setter_getter],
     [$.if_expression],
-    [$.while_statement, $._if_block],
     [$.secondary_constructor],
     [$.type_parameter],
     [$.explicit_delegation, $._unary_expression],
     [$.class_body, $._semi],
     [$.parameter, $._simple_user_type],
-    [$.function_type_parameters]
+    [$.function_type_parameters],
+    [$._top_level_statement],
+    [$.type_constraints, $.property_declaration],
+    [$.enum_class_body],
+    [$.package_header],
+    [$._when_condition_clause],
+    [$._wrapper]
   ],
 
   extras: $ => [
     $.line_comment,
     $.multiline_comment,
-    NON_NL_WHITESPACE
+    $._ws
   ],
 
   externals: $ => [
@@ -190,7 +192,8 @@ module.exports = grammar({
   ],
 
   supertypes: $ => [
-    $.expression
+    $.expression,
+    $.jump_expression
   ],
 
   word: $ => $._alpha_identifier,
@@ -230,7 +233,7 @@ module.exports = grammar({
       $._semi,
     ),
 
-    package_header: $ => prec.right(seq("package", $.identifier, optional($._semi))),
+    package_header: $ => seq("package", $.identifier, optional(seq(repeat($._NL), ";"))),
 
     import_header: $ => prec.left(seq(
       "import",
@@ -253,7 +256,7 @@ module.exports = grammar({
         $._loop_statement,
         $.expression
       ), 
-      $._semi,
+      optional($._semi),
     ),
 
     type_alias: $ => prec.right(seq(
@@ -426,7 +429,6 @@ module.exports = grammar({
       optional(field('name', $.simple_identifier)),
       optional(seq(":", repeat($._NL), $._delegation_specifiers)),
       optional(field('body', $.class_body)),
-      repeat($._NL)
     )),
 
     function_value_parameters: $ => seq(
@@ -484,14 +486,19 @@ module.exports = grammar({
       optional(seq(field('receiver_type', $.receiver_type), choice($._dot, '.'))),
       field('var_decl', choice($.variable_declaration, $.multi_variable_declaration)),
       optional(field('type_constraints', $.type_constraints)),
+      repeat($._NL),
       optional(choice(
         seq("=", repeat($._NL), field('initializer', $.expression)),
         $.property_delegate
       )),
-      repeat($._NL),
-      optional(';'),
-      repeat($._NL),
-      repeat($._setter_getter)
+      optional(
+        seq(      
+          repeat($._NL),
+          optional(';'),
+          repeat($._NL),
+          $._setter_getter
+        )
+      )
     ),
 
     property_delegate: $ => seq("by", repeat($._NL), $.expression),
@@ -574,6 +581,7 @@ module.exports = grammar({
       "{",
       repeat($._NL),
       optional($._enum_entries),
+      repeat($._NL),
       optional(seq(";", repeat($._NL), optional($._class_member_declarations))),
       "}"
     ),
@@ -583,7 +591,6 @@ module.exports = grammar({
       repeat(seq(repeat($._NL), ",", repeat($._NL), $.enum_entry)),
       repeat($._NL),
       optional(","),
-      repeat($._NL),
     ),
 
     enum_entry: $ => seq(
@@ -677,16 +684,16 @@ module.exports = grammar({
     // Statements
     // ==========
 
-    statements: $ => seq(
-      sep1($.statement, repeat1($._semi)),
-      repeat($._semi)
-    ),
+    statements: $ => repeat1(seq($._statement, repeat($._semi))),
 
-    statement: $ => choice(
-      $._declaration,
-      $.assignment,
-      $._loop_statement,
-      $.expression),
+    _statement: $ => prec.right(seq($.statement, optional($._semi))),
+
+    statement: $ =>
+      choice(
+        $._declaration,
+        $.assignment,
+        $._loop_statement,
+        $.expression),
 
     label: $ => token(seq(
       /[a-zA-Z_][a-zA-Z_0-9]*/,
@@ -708,35 +715,40 @@ module.exports = grammar({
 
     for_statement: $ => prec.right(seq(
       "for",
+      repeat($._NL),
       "(",
       repeat($._NL),
+      $._in_expression,
+      repeat($._NL),
+      ")",
+      repeat($._NL),
+      optional(field('body', $._control_body_structure))
+    )),
+
+    _in_expression: $ => seq(
       repeat($.annotation),
       field('var_decl', choice($.variable_declaration, $.multi_variable_declaration)),
       repeat($._NL),
       "in",
       repeat($._NL),
       field('expression', $.expression),
-      repeat($._NL),
-      ")",
-      repeat($._NL),
-      optional(field('body', $._if_block))
-    )),
+    ),
 
     while_statement: $ => seq(
       "while",
       "(",
       repeat($._NL),
-      field('expression', $.expression),
+      $.expression,
       repeat($._NL),
       ")",
       repeat($._NL),
-      choice(";", $._if_block)
+      choice(";", $._control_body_structure)
     ),
 
     do_while_statement: $ => prec.right(seq(
       "do",
       repeat($._NL),
-      optional($._if_block),
+      optional($._control_body_structure),
       repeat($._NL),
       "while",
       "(",
@@ -746,10 +758,17 @@ module.exports = grammar({
     )),
 
     assignment: $ => seq(
-      field('left', $.expression),
-      field('op', $._assignment_and_operator),
+      field('left', $._directly_assignable_expression),
+      field('op', $._assignment_operator),
       repeat($._NL),
       field('right', $.expression)
+    ),
+
+    _directly_assignable_expression: $ => choice(
+      $.dot_qualified_expression,
+      $.index_access_expression,
+      $.simple_identifier,
+      $.postfix_expression,
     ),
 
     // ==========
@@ -759,7 +778,8 @@ module.exports = grammar({
     expression: $ => choice(
       $._unary_expression,
       $._binary_expression,
-      $._primary_expression
+      $._primary_expression,
+      $.jump_expression
     ),
 
     // Unary expressions
@@ -772,11 +792,16 @@ module.exports = grammar({
       $.annotated_expression,
       $.labeled_expression,
       $.if_expression,
-      $.return_expression,
-      $.throw_expression
     ),
 
-    postfix_expression: $ => prec(PREC.POSTFIX, seq(field('expression', $.expression), field('operator', $.postfix_unary_operator))),
+    jump_expression: $ => choice(
+      $.return_expression,
+      $.throw_expression,
+      $.continue_expression,
+      $.break_expression
+    ),
+
+    postfix_expression: $ => prec(PREC.POSTFIX, seq(field('expression', $.expression), field('operator', $._postfix_unary_operator))),
 
     dot_qualified_expression: $ => prec(PREC.DOT, seq(
       field('receiver', choice($.expression)),
@@ -833,7 +858,7 @@ module.exports = grammar({
     labeled_expression: $ => seq($.label, repeat($._NL), $.expression),
 
     prefix_expression: $ => prec(PREC.PREFIX, seq(
-      field('op', $.prefix_unary_operator), 
+      field('op', $._prefix_unary_operator), 
       repeat($._NL),
       field('expression', $.expression))
     ),
@@ -861,8 +886,6 @@ module.exports = grammar({
 
     range_expression: $ => prec.left(PREC.RANGE, seq($.expression, $._range_opeartor, repeat($._NL), $.expression)),
 
-    _range_opeartor: $ => choice("..", "..<"),
-
     infix_expression: $ => prec.left(PREC.INFIX, seq($.expression, $.simple_identifier, repeat($._NL), $.expression)),
 
     elvis_expression: $ => prec.left(PREC.ELVIS, seq($.expression, $._elvis, repeat($._NL), $.expression)),
@@ -873,7 +896,7 @@ module.exports = grammar({
 
     comparison_expression: $ => prec.left(PREC.COMPARISON, seq($.expression, $._comparison_operator, repeat($._NL), $.expression)),
 
-    equality_expression: $ => prec.left(PREC.EQUALITY, seq($.expression, $._equality_operator, repeat($._NL), $.expression)),
+    equality_expression: $ => prec.left(PREC.EQUALITY, seq($.expression, field('op', $._equality_operator), repeat($._NL), $.expression)),
 
     conjunction_expression: $ => prec.left(PREC.CONJUNCTION, seq(
       field('left', $.expression), 
@@ -950,8 +973,6 @@ module.exports = grammar({
       $.try_expression,
       $.dot_qualified_expression,
       $.index_access_expression,
-      $.continue_expression,
-      $.break_expression
     ),
 
     parenthesized_expression: $ => seq("(", repeat($._NL), $.expression, repeat($._NL), ")"),
@@ -1084,13 +1105,13 @@ module.exports = grammar({
       $._if_condition,
       repeat($._NL),
       choice(
-        field('consequence', $._if_block),
+        field('consequence', $._control_body_structure),
         seq(
-          optional(field('consequence', $._if_block)),
+          optional(field('consequence', $._control_body_structure)),
           repeat($._NL),
           "else",
           repeat($._NL),
-          field('alternative', $._if_block)
+          field('alternative', $._control_body_structure)
         )
       )
     ),
@@ -1103,13 +1124,12 @@ module.exports = grammar({
       ")",
     ),
 
-    _if_block: $ => prec.right(choice(
+    _control_body_structure: $ => choice(
       $.expression, 
       $.assignment, 
       $.block,
       $._loop_statement,
-      ";"
-    )),
+    ),
 
     when_subject: $ => seq(
       "(",
@@ -1131,25 +1151,33 @@ module.exports = grammar({
       optional($.when_subject),
       "{",
       repeat($._NL),
-      repeat($.when_entry),
+      repeat($._wrapper),
       "}"
     ),
 
+    // This is a wrapper node so that the comment and whitespace is not recognized as
+    // part of the when_entry node.  
+    _wrapper: $ => seq($.when_entry, repeat($._semi)),
+
     when_entry: $ => seq(
+      $._when_condition_clause,
+      repeat($._NL),
+      $._control_body_structure,
+    ),
+
+    _when_condition_clause: $ => seq(
       choice(
         seq(
           sep1($.when_condition, repeat($._NL), ",", repeat($._NL)), 
           repeat($._NL),
           optional(","),
+          repeat($._NL),
         ),
         repeat($._NL),
         "else",
+        repeat($._NL),
       ),
-      repeat($._NL),
       "->",
-      repeat($._NL),
-      $._if_block,
-      optional(seq($._semi, repeat($._NL)))
     ),
 
     when_condition: $ => choice(
@@ -1174,6 +1202,7 @@ module.exports = grammar({
 
     catch_block: $ => seq(
       "catch",
+      repeat($._NL),
       "(",
       repeat($._NL),
       repeat($.annotation),
@@ -1181,19 +1210,20 @@ module.exports = grammar({
       ":",
       field('type', $._type),
       ")",
+      repeat($._NL),
       field('body', $.block),
     ),
 
-    finally_block: $ => seq("finally", $.block),
+    finally_block: $ => seq("finally", repeat($._NL), $.block),
 
-    return_expression: $ => prec(PREC.RETURN_OR_THROW, seq(
+    return_expression: $ => prec.right(seq(
       choice("return", seq("return@", $._lexical_identifier)), 
       optional($.expression)
     )),
 
-    throw_expression: $ => prec(PREC.RETURN_OR_THROW, seq(
+    throw_expression: $ => seq(
       "throw", $.expression,
-    )),
+    ),
 
     continue_expression: $ => choice(
       "continue",
@@ -1211,10 +1241,10 @@ module.exports = grammar({
       choice($.simple_identifier, "class")
     )),
 
-    _assignment_and_operator: $ => choice("=", "+=", "-=", "*=", "/=", "%="),
+    _assignment_operator: $ => choice("=", "+=", "-=", "*=", "/=", "%="),
 
     _equality_operator: $ => choice("!=", "!==", "==", "==="),
-
+    
     _comparison_operator: $ => choice("<", ">", "<=", ">="),
 
     _in_operator: $ => choice("in", "!in"),
@@ -1227,9 +1257,11 @@ module.exports = grammar({
 
     _as_operator: $ => choice("as", "as?"),
 
-    prefix_unary_operator: $ => choice("++", "--", "-", "+", "!"),
+    _prefix_unary_operator: $ => choice("++", "--", "-", "+", "!"),
 
-    postfix_unary_operator: $ => choice("++", "--", "!!"),
+    _postfix_unary_operator: $ => choice("++", "--", "!!"),
+
+    _range_opeartor: $ => choice("..", "..<"),
 
     // ==========
     // Modifiers
@@ -1493,6 +1525,7 @@ module.exports = grammar({
 
     _CONJ: $ => /\s*&&/,
     _DISJ: $ => /\s*\|\|/,
+    _ws: $ => NON_NL_WHITESPACE,
     _NL: $ => /\r?\n/,
     _semi: $ => choice(";", $._NL),
 

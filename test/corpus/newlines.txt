@@ -236,7 +236,6 @@ else boo()
   (statement
     (if_expression
       condition: (prefix_expression
-        op: (prefix_unary_operator)
         expression: (simple_identifier))
       consequence: (integer_literal)
       alternative: (call_expression
@@ -255,7 +254,6 @@ if (!foo) 3 else boo()
   (statement
     (if_expression
       condition: (prefix_expression
-        op: (prefix_unary_operator)
         expression: (simple_identifier))
       consequence: (integer_literal)
       alternative: (call_expression
@@ -705,7 +703,7 @@ while (iterator.hasNext())
 (source_file
   (statement
     (while_statement
-      expression: (call_expression
+      (call_expression
         expression: (dot_qualified_expression
           receiver: (simple_identifier)
           selector: (simple_identifier))
@@ -985,3 +983,23 @@ internal object TransformRequestBodyHook : ClientHook<
                 type: (user_type
                   (type_identifier))))))))
     body: (class_body)))
+
+================================================================================
+Newline after property declaration
+================================================================================
+
+private val property: Boolean
+  = true
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (property_declaration
+    modifiers: (modifiers
+      (visibility_modifier))
+    (binding_pattern_kind)
+    var_decl: (variable_declaration
+      id: (simple_identifier)
+      type: (user_type
+        (type_identifier)))
+    initializer: (boolean_literal)))

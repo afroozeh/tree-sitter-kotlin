@@ -266,3 +266,112 @@ if (x > 0)
                 args: (value_arguments
                   (value_argument
                     (simple_identifier)))))))))))
+
+================================================================================
+Statements after return
+================================================================================
+
+fun f() {
+  s1
+  return 1
+  s2
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    name: (simple_identifier)
+    parameters: (function_value_parameters)
+    body: (function_body
+      (block
+        (statements
+          (statement
+            (simple_identifier))
+          (statement
+            (return_expression
+              (integer_literal)))
+          (statement
+            (simple_identifier)))))))
+
+================================================================================
+Statements after return
+================================================================================
+
+fun f(x: Int) {
+  return x
+  return
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    name: (simple_identifier)
+    parameters: (function_value_parameters
+      (function_value_parameter
+        parameter: (parameter
+          name: (simple_identifier)
+          type: (user_type
+            (type_identifier)))))
+    body: (function_body
+      (block
+        (statements
+          (statement
+            (return_expression
+              (simple_identifier)))
+          (statement
+            (return_expression)))))))
+
+
+
+================================================================================
+Property followed by a modifier with internal
+================================================================================
+
+private val emptyImageBitmap: ImageBitmap by lazy { ImageBitmap(1, 1) }
+
+internal val ImageBitmap.isEmptyPlaceholder: Boolean
+    get() = this == emptyImageBitmap
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (property_declaration
+    modifiers: (modifiers
+      (visibility_modifier))
+    (binding_pattern_kind)
+    var_decl: (variable_declaration
+      id: (simple_identifier)
+      type: (user_type
+        (type_identifier)))
+    (property_delegate
+      (call_expression
+        expression: (simple_identifier)
+        lambda_arg: (annotated_lambda
+          (lambda_literal
+            body: (statements
+              (statement
+                (call_expression
+                  expression: (simple_identifier)
+                  args: (value_arguments
+                    (value_argument
+                      (integer_literal))
+                    (value_argument
+                      (integer_literal)))))))))))
+  (property_declaration
+    modifiers: (modifiers
+      (visibility_modifier))
+    (binding_pattern_kind)
+    receiver_type: (receiver_type
+      type: (user_type
+        (type_identifier)))
+    var_decl: (variable_declaration
+      id: (simple_identifier)
+      type: (user_type
+        (type_identifier)))
+    (getter
+      (function_body
+        expression: (equality_expression
+          (this_expression)
+          (simple_identifier))))))
