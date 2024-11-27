@@ -791,3 +791,168 @@ class A {;
         parameters: (function_value_parameters)
         body: (function_body
           (block))))))
+
+
+================================================================================
+Class in function
+================================================================================
+
+class A {
+	fun f() {
+    class B {
+      val a = 1
+    }
+  }
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (class_declaration
+    name: (simple_identifier)
+    body: (class_body
+      (function_declaration
+        name: (simple_identifier)
+        parameters: (function_value_parameters)
+        body: (function_body
+          (block
+            (statements
+              (statement
+                (class_declaration
+                  name: (simple_identifier)
+                  body: (class_body
+                    (property_declaration
+                      (binding_pattern_kind)
+                      var_decl: (variable_declaration
+                        id: (simple_identifier))
+                      initializer: (integer_literal))))))))))))
+
+
+================================================================================
+Consequtive classes without body
+================================================================================
+
+private open class Action
+private data class EmitResumes(val job: TestJob) : Action()
+private data class Collected(val job: TestJob, val value: Any?) : Action()
+private data class ResumeCollecting(val job: TestJob) : Action()
+private data class Cancelled(val job: TestJob) : Action()
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (class_declaration
+    modifiers: (modifiers
+      (visibility_modifier)
+      (inheritance_modifier))
+    name: (simple_identifier))
+  (class_declaration
+    modifiers: (modifiers
+      (visibility_modifier)
+      (class_modifier))
+    name: (simple_identifier)
+    (primary_constructor
+      (class_parameters
+        (class_parameter
+          binding_pattern: (binding_pattern_kind)
+          name: (simple_identifier)
+          type: (user_type
+            (type_identifier)))))
+    (delegation_specifier
+      (constructor_invocation
+        (user_type
+          (type_identifier))
+        (value_arguments))))
+  (class_declaration
+    modifiers: (modifiers
+      (visibility_modifier)
+      (class_modifier))
+    name: (simple_identifier)
+    (primary_constructor
+      (class_parameters
+        (class_parameter
+          binding_pattern: (binding_pattern_kind)
+          name: (simple_identifier)
+          type: (user_type
+            (type_identifier)))
+        (class_parameter
+          binding_pattern: (binding_pattern_kind)
+          name: (simple_identifier)
+          type: (nullable_type
+            type: (user_type
+              (type_identifier))))))
+    (delegation_specifier
+      (constructor_invocation
+        (user_type
+          (type_identifier))
+        (value_arguments))))
+  (class_declaration
+    modifiers: (modifiers
+      (visibility_modifier)
+      (class_modifier))
+    name: (simple_identifier)
+    (primary_constructor
+      (class_parameters
+        (class_parameter
+          binding_pattern: (binding_pattern_kind)
+          name: (simple_identifier)
+          type: (user_type
+            (type_identifier)))))
+    (delegation_specifier
+      (constructor_invocation
+        (user_type
+          (type_identifier))
+        (value_arguments))))
+  (class_declaration
+    modifiers: (modifiers
+      (visibility_modifier)
+      (class_modifier))
+    name: (simple_identifier)
+    (primary_constructor
+      (class_parameters
+        (class_parameter
+          binding_pattern: (binding_pattern_kind)
+          name: (simple_identifier)
+          type: (user_type
+            (type_identifier)))))
+    (delegation_specifier
+      (constructor_invocation
+        (user_type
+          (type_identifier))
+        (value_arguments)))))
+
+
+================================================================================
+Local class in function
+================================================================================
+
+class X {
+    fun f() {
+        val a = 1
+        class Y {
+        }
+    }
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (class_declaration
+    name: (simple_identifier)
+    body: (class_body
+      (function_declaration
+        name: (simple_identifier)
+        parameters: (function_value_parameters)
+        body: (function_body
+          (block
+            (statements
+              (statement
+                (property_declaration
+                  (binding_pattern_kind)
+                  var_decl: (variable_declaration
+                    id: (simple_identifier))
+                  initializer: (integer_literal)))
+              (statement
+                (class_declaration
+                  name: (simple_identifier)
+                  body: (class_body))))))))))

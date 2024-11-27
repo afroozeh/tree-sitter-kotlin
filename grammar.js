@@ -30,7 +30,6 @@ const PREC = {
   DOT: 16,
   POSTFIX: 16,
   PREFIX: 15,
-  TYPE_RHS: 14,
   AS: 13,
   MULTIPLICATIVE: 12,
   ADDITIVE: 11,
@@ -42,11 +41,8 @@ const PREC = {
   EQUALITY: 5,
   CONJUNCTION: 4,
   DISJUNCTION: 3,
-  VAR_DECL: 3,
   GENERIC: 3,
   SPREAD: 2,
-  TYPE_REFERENCE: 1,
-  ASSIGNMENT: 1,
   BLOCK: 1,
   ARGUMENTS: 1,
   STRING_CONTENT: 1,
@@ -76,8 +72,8 @@ module.exports = grammar({
 
   conflicts: $ => [
     [$.class_declaration],
-    [$.class_declaration, $.primary_constructor],
-    
+    [$.enum_class_declaration],
+
     // @Type(... could either be an annotation constructor invocation or an annotated expression
     [$.constructor_invocation, $._unescaped_annotation],
 
@@ -128,7 +124,6 @@ module.exports = grammar({
 
     [$.annotated_expression, $.modifiers],
     [$.annotated_expression, $.when_subject],
-    [$.annotated_expression, $.value_argument],
     [$.annotation],
     [$.variable_declaration],
     [$.class_parameter],
@@ -148,7 +143,6 @@ module.exports = grammar({
     [$.function_value_parameters],
     [$.class_parameters],
     [$.source_file],
-    [$._type_reference, $.function_type],
     [$._type_reference, $.parenthesized_user_type],
     [$.type_arguments, $._comparison_operator],
     [$.call_expression, $.prefix_expression, $.comparison_expression],
@@ -166,15 +160,19 @@ module.exports = grammar({
     [$.secondary_constructor],
     [$.type_parameter],
     [$.explicit_delegation, $._unary_expression],
-    [$.class_body, $._semi],
     [$.parameter, $._simple_user_type],
     [$.function_type_parameters],
     [$._top_level_statement],
     [$.type_constraints, $.property_declaration],
     [$.enum_class_body],
     [$.package_header],
-    [$._when_condition_clause],
-    [$._wrapper]
+    [$.when_entry],
+    [$.enum_class_declaration, $.type_constraints],
+    [$.receiver_type, $._type],
+    [$.receiver_type],
+    [$._unary_expression, $.annotated_expression],
+    [$.annotated_expression, $._primary_expression],
+    [$.expression, $.annotated_expression]
   ],
 
   extras: $ => [
@@ -283,32 +281,37 @@ module.exports = grammar({
     // Classes
     // ==========
 
-    class_declaration: $ =>seq(
+    class_declaration: $ => seq(
       optional(field('modifiers', $.modifiers)),
       choice("class", seq(optional(seq("fun", repeat($._NL))), "interface")),
       repeat($._NL),
       field('name', $.simple_identifier),
+      repeat($._NL),
       optional($.type_parameters),
+      repeat($._NL),
       optional($.primary_constructor),
       optional(seq(repeat($._NL), ":", repeat($._NL),  $._delegation_specifiers)),
       repeat($._NL),
       optional($.type_constraints),
+      repeat($._NL),
       optional(field('body', $.class_body)),
     ),
 
-    enum_class_declaration: $ => prec.right(seq(
+    enum_class_declaration: $ => seq(
       optional(field('modifiers', $.modifiers)),
       seq("enum", "class"),
       field('name', $.simple_identifier),
+      repeat($._NL),
       optional($.type_parameters),
+      repeat($._NL),
       optional($.primary_constructor),
-      optional(seq(":", repeat($._NL), $._delegation_specifiers)),
+      optional(seq(repeat($._NL), ":", repeat($._NL), $._delegation_specifiers)),
       optional($.type_constraints),
+      repeat($._NL),
       optional(field('body', $.enum_class_body))
-    )),
+    ),
 
     primary_constructor: $ => seq(
-      repeat($._NL),
       optional(seq(optional(field('modifiers', $.modifiers)), "constructor", repeat($._NL))),
       $.class_parameters
     ),
@@ -371,14 +374,14 @@ module.exports = grammar({
       "by",
       repeat($._NL),
       choice(
-        $._common_primary_expression, 
+        $._common_primary_expression,
+        $.parenthesized_expression,
         alias($.simple_call_expression, $.call_expression),
         $.as_expression
       )
     ),
 
     type_parameters: $ => seq(
-      repeat($._NL),
       "<", 
       repeat($._NL),
       sep1($.type_parameter, repeat($._NL), ",", repeat($._NL)), 
@@ -408,16 +411,16 @@ module.exports = grammar({
     // Class members
     // ==========
 
-    _class_member_declarations: $ => repeat1(choice(
-      $._class_member_declaration,
-      $._semi
-    )),
+    _class_member_declarations: $ => repeat1(
+      seq($._class_member_declaration, repeat($._NL))
+    ),
 
     _class_member_declaration: $ => choice(
       $._declaration,
       $.companion_object,
       $.anonymous_initializer,
-      $.secondary_constructor
+      $.secondary_constructor,
+      ";"
     ),
 
     anonymous_initializer: $ => seq("init", $.block),
@@ -529,6 +532,7 @@ module.exports = grammar({
         $.parameter_with_optional_type,
         ")",
         optional(seq(":", $._type)),
+        repeat($._NL),
         $.function_body
       ))
     )),
@@ -653,7 +657,7 @@ module.exports = grammar({
     _type_projection_modifier: $ => $.variance_modifier,
 
     function_type: $ => seq(
-      optional(seq($.user_type, choice($._dot, "."))), // TODO: Support "real" types
+      optional(seq($.receiver_type, choice($._dot, "."), repeat($._NL))), 
       $.function_type_parameters,
       repeat($._NL),
       "->",
@@ -684,16 +688,14 @@ module.exports = grammar({
     // Statements
     // ==========
 
-    statements: $ => repeat1(seq($._statement, repeat($._semi))),
+    statements: $ => seq(sep1($.statement, repeat1($._semi)), repeat($._semi)),
 
-    _statement: $ => prec.right(seq($.statement, optional($._semi))),
-
-    statement: $ =>
-      choice(
-        $._declaration,
-        $.assignment,
-        $._loop_statement,
-        $.expression),
+    statement: $ => choice(
+      $._declaration,
+      $.assignment,
+      $._loop_statement,
+      $.expression
+    ),
 
     label: $ => token(seq(
       /[a-zA-Z_][a-zA-Z_0-9]*/,
@@ -791,7 +793,6 @@ module.exports = grammar({
       $.is_expression,
       $.annotated_expression,
       $.labeled_expression,
-      $.if_expression,
     ),
 
     jump_expression: $ => choice(
@@ -830,7 +831,7 @@ module.exports = grammar({
     // of the call. That means that based on the context a call_expression happens in, we either want left or right
     // associativity for the arguments, which is not posssible to specify with tree-sitter. 
     // Creating a separate nonterminal, is the cleanest way to move forward.
-    // 
+    // A simple_call_expression is the one without the trailing lambda argument.
     simple_call_expression: $=> prec(PREC.CALL, seq(
       field('expression', $.expression), 
       optional($.type_arguments),
@@ -853,7 +854,13 @@ module.exports = grammar({
       ']')
     ),
 
-    annotated_expression: $ => seq($.annotation, repeat($._NL), $.expression),
+    // There is an inherent ambiguity between annotated expressions and annotated function types:
+    // `@Annotation() f` should be parsed as an annotated expression while
+    // `@Annotation () -> Int` should be parsed as a function type
+    // We cannot beforehand decide whether `()` is part of th annotation or not. To resolve this ambiguity
+    // is to exclude paranethesized expression to be able to be part of an annotation. All annotations that are function-call-lik
+    // should be parsed as a single annotation, and not an annotated expression on parenthesized expressions.
+    annotated_expression: $ => seq($.annotation, repeat($._NL), choice($._common_primary_expression, $.call_expression, $.postfix_expression, $.jump_expression)),
 
     labeled_expression: $ => seq($.label, repeat($._NL), $.expression),
 
@@ -956,10 +963,10 @@ module.exports = grammar({
     _primary_expression: $ => choice(
       $._common_primary_expression,
       $.call_expression,
+      $.parenthesized_expression,
     ),
 
     _common_primary_expression: $ => choice(
-      $.parenthesized_expression,
       $.simple_identifier,
       $._literal_constant,
       $.string_literal,
@@ -973,6 +980,7 @@ module.exports = grammar({
       $.try_expression,
       $.dot_qualified_expression,
       $.index_access_expression,
+      $.if_expression
     ),
 
     parenthesized_expression: $ => seq("(", repeat($._NL), $.expression, repeat($._NL), ")"),
@@ -1151,33 +1159,32 @@ module.exports = grammar({
       optional($.when_subject),
       "{",
       repeat($._NL),
-      repeat($._wrapper),
+      optional($.when_entries),
       "}"
     ),
 
-    // This is a wrapper node so that the comment and whitespace is not recognized as
-    // part of the when_entry node.  
-    _wrapper: $ => seq($.when_entry, repeat($._semi)),
+    when_entries: $ => repeat1(seq($._when_entry, repeat($._semi))),
+
+    _when_entry: $ => choice(
+      $.when_entry,
+      $.else_entry
+    ),
 
     when_entry: $ => seq(
-      $._when_condition_clause,
+      sep1($.when_condition, repeat($._NL), ",", repeat($._NL)), 
+      optional(seq(repeat($._NL), optional(","))),
+      repeat($._NL),
+      "->",
       repeat($._NL),
       $._control_body_structure,
     ),
 
-    _when_condition_clause: $ => seq(
-      choice(
-        seq(
-          sep1($.when_condition, repeat($._NL), ",", repeat($._NL)), 
-          repeat($._NL),
-          optional(","),
-          repeat($._NL),
-        ),
-        repeat($._NL),
-        "else",
-        repeat($._NL),
-      ),
+    else_entry: $ => seq(
+      "else",
+      repeat($._NL),
       "->",
+      repeat($._NL),
+      $._control_body_structure,
     ),
 
     when_condition: $ => choice(
