@@ -311,3 +311,72 @@ fun f() {
             (simple_identifier)))
         (line_comment)
         (line_comment)))))
+
+
+================================================================================
+Comments between property declarations without body
+================================================================================
+
+val baz: @a Int?
+
+// comment
+
+val x: Int
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (property_declaration
+    (binding_pattern_kind)
+    var_decl: (variable_declaration
+      id: (simple_identifier)
+      type: (type_modifiers
+        (annotation
+          (user_type
+            (type_identifier))))
+      type: (nullable_type
+        type: (user_type
+          (type_identifier)))))
+  (line_comment)
+  (property_declaration
+    (binding_pattern_kind)
+    var_decl: (variable_declaration
+      id: (simple_identifier)
+      type: (user_type
+        (type_identifier)))))
+
+================================================================================
+Comments in when expression
+================================================================================
+
+when (e) {
+  // comment 	
+  is S -> d
+  // comment
+  is T -> d
+  // comment
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (statement
+    (when_expression
+      (when_subject
+        (simple_identifier))
+      (line_comment)
+      (when_entries
+        (when_entry
+          (when_condition
+            (type_test
+              type: (user_type
+                (type_identifier))))
+          (simple_identifier))
+        (line_comment)
+        (when_entry
+          (when_condition
+            (type_test
+              type: (user_type
+                (type_identifier))))
+          (simple_identifier)))
+      (line_comment))))

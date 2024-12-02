@@ -73,28 +73,9 @@ module.exports = grammar({
 
   conflicts: $ => [
     [$.class_declaration],
-    [$.enum_class_declaration],
 
     // @Type(... could either be an annotation constructor invocation or an annotated expression
     [$.constructor_invocation, $._unescaped_annotation],
-
-    [$.platform_modifier, $._soft_keywords],
-    [$._type_modifier, $._soft_keywords],
-    [$.class_modifier, $._soft_keywords],
-    [$.function_modifier, $._soft_keywords],
-    [$.member_modifier, $._soft_keywords],
-    [$.visibility_modifier, $._soft_keywords],
-    [$.property_modifier, $._soft_keywords],
-    [$.inheritance_modifier, $._soft_keywords],
-    [$.parameter_modifier, $._soft_keywords],
-    [$.class_modifier, $._soft_keywords],
-    [$.use_site_target, $._soft_keywords],
-    [$.import_header, $._soft_keywords],
-    [$.variance_modifier, $._soft_keywords],
-    [$.reification_modifier, $._soft_keywords],
-    [$.getter, $._soft_keywords],
-    [$.setter, $._soft_keywords],
-    [$.enum_class_declaration, $._soft_keywords],
 
     [$.type_parameter_modifiers],
     [$.type_projection_modifiers],
@@ -159,7 +140,6 @@ module.exports = grammar({
     [$.explicit_delegation, $._unary_expression],
     [$.parameter, $._simple_user_type],
     [$.function_type_parameters],
-    [$.type_constraints, $.property_declaration],
     [$.enum_class_body],
     [$.package_header],
     [$.when_entry],
@@ -178,7 +158,12 @@ module.exports = grammar({
     [$.call_expression, $.labeled_expression, $.comparison_expression],
     [$.assignment, $.annotated_expression, $.modifiers],
     [$.assignment, $.annotated_expression],
-    [$.annotated_expression]
+    [$.annotated_expression],
+    [$._class_member_declaration, $.enum_class_body],
+    [$.class_body, $.enum_class_body],
+    [$._when_entry],
+    [$.when_entries],
+    [$.when_expression]
   ],
 
   extras: $ => [
@@ -273,7 +258,6 @@ module.exports = grammar({
 
     _declaration: $ => choice(
       $.class_declaration,
-      $.enum_class_declaration,
       $.object_declaration,
       $._function_declaration,
       $.property_declaration,
@@ -293,18 +277,7 @@ module.exports = grammar({
       optional(seq(repeat($._NL), $.primary_constructor)),
       optional(seq(repeat($._NL), ":", repeat($._NL),  $._delegation_specifiers)),
       optional(seq(repeat($._NL), $.type_constraints)),
-      optional(seq(repeat($._NL), field('body', $.class_body))),
-    ),
-
-    enum_class_declaration: $ => seq(
-      optional(field('modifiers', $.modifiers)),
-      seq("enum", "class"),
-      field('name', $.simple_identifier),
-      optional(seq(repeat($._NL), $.type_parameters)),
-      optional(seq(repeat($._NL), $.primary_constructor)),
-      optional(seq(repeat($._NL), ":", repeat($._NL),  $._delegation_specifiers)),
-      optional(seq(repeat($._NL), $.type_constraints)),
-      optional(field('body', $.enum_class_body))
+      optional(seq(repeat($._NL), field('body', choice($.class_body, alias($.enum_class_body, $.class_body))))),
     ),
 
     primary_constructor: $ => seq(
@@ -498,11 +471,12 @@ module.exports = grammar({
       optional(seq(field('receiver_type', $.receiver_type), choice($._dot, '.'))),
       field('var_decl', choice($.variable_declaration, $.multi_variable_declaration)),
       optional(field('type_constraints', $.type_constraints)),
-      repeat($._NL),
-      optional(choice(
-        seq("=", repeat($._NL), field('initializer', $.expression)),
-        $.property_delegate
-      )),
+      optional(seq(
+        repeat($._NL),
+        choice(
+          seq("=", repeat($._NL), field('initializer', $.expression)),
+          $.property_delegate
+      ))),
       optional(
         seq(      
           repeat($._NL),
@@ -1165,14 +1139,18 @@ module.exports = grammar({
       "{",
       repeat($._NL),
       optional($.when_entries),
+      repeat($._NL),
       "}"
     ),
 
-    when_entries: $ => repeat1(seq($._when_entry, repeat($._semi))),
+    when_entries: $ => sep1($._when_entry, repeat($._NL)),
 
-    _when_entry: $ => choice(
-      $.when_entry,
-      $.else_entry
+    _when_entry: $ => seq(
+      choice(
+        $.when_entry,
+        $.else_entry
+      ),
+      optional(seq(repeat($._NL), ";"))
     ),
 
     when_entry: $ => seq(
@@ -1283,7 +1261,7 @@ module.exports = grammar({
 
     parameter_modifiers: $ => prec.right(repeat1(choice($._annotation, $.parameter_modifier))),
 
-    _modifier: $ => choice(
+    _modifier: $ => seq(choice(
       $.class_modifier,
       $.member_modifier,
       $.visibility_modifier,
@@ -1292,13 +1270,14 @@ module.exports = grammar({
       $.inheritance_modifier,
       $.parameter_modifier,
       $.platform_modifier
-    ),
+    ), repeat($._NL)),
 
     type_modifiers: $ => repeat1($._type_modifier),
 
     _type_modifier: $ => choice($._annotation, "suspend"),
 
     class_modifier: $ => choice(
+      "enum",
       "sealed",
       "annotation",
       "data",
@@ -1403,7 +1382,7 @@ module.exports = grammar({
 
     simple_identifier: $ => choice($._lexical_identifier, $._soft_keywords),
 
-    _soft_keywords: $ => choice(
+    _soft_keywords: $ => prec(-1, choice(
       "by",
       "catch",
       "constructor",
@@ -1448,7 +1427,7 @@ module.exports = grammar({
       "sealed",
       "suspend",
       "tailrec",
-      "vararg"),
+      "vararg")),
 
     identifier: $ => sep1($.simple_identifier, "."),
 
