@@ -136,7 +136,6 @@ module.exports = grammar({
     [$.property_declaration],
     [$._enum_entries],
     [$.type_constraints],
-    [$.class_declaration, $.type_constraints],
     [$.do_while_statement],
     [$._delegation_specifiers],
     [$.explicit_delegation, $._primary_expression],
@@ -153,7 +152,6 @@ module.exports = grammar({
     [$.call_expression, $.multiplicative_expression, $.comparison_expression],
     [$.call_expression, $.infix_expression, $.comparison_expression],
     [$.annotated_lambda, $.modifiers],
-    [$.lambda_literal],
     [$.function_type_parameters, $.parenthesized_type],
     [$._setter_getter],
     [$.if_expression],
@@ -162,17 +160,18 @@ module.exports = grammar({
     [$.explicit_delegation, $._unary_expression],
     [$.parameter, $._simple_user_type],
     [$.function_type_parameters],
-    [$._top_level_statement],
     [$.type_constraints, $.property_declaration],
     [$.enum_class_body],
     [$.package_header],
     [$.when_entry],
-    [$.enum_class_declaration, $.type_constraints],
     [$.receiver_type, $._type],
     [$.receiver_type],
     [$._unary_expression, $.annotated_expression],
     [$.annotated_expression, $._primary_expression],
-    [$.expression, $.annotated_expression]
+    [$.expression, $.annotated_expression],
+    [$.function_declaration_no_body, $.function_declaration],
+    [$.statements],
+    [$.statements, $._semi]
   ],
 
   extras: $ => [
@@ -248,14 +247,11 @@ module.exports = grammar({
     _top_level_statements: $ =>
       repeat1(seq(alias($._top_level_statement, $.statement), repeat($._semi))),
 
-    _top_level_statement: $ => seq(
-      choice(
-        $.assignment,
-        $._loop_statement,
-        $.expression
-      ), 
-      optional($._semi),
-    ),
+    _top_level_statement: $ => choice(
+      $.assignment,
+      $._loop_statement,
+      $.expression
+    ), 
 
     type_alias: $ => prec.right(seq(
       optional(field('modifiers', $.modifiers)),
@@ -272,7 +268,7 @@ module.exports = grammar({
       $.class_declaration,
       $.enum_class_declaration,
       $.object_declaration,
-      $.function_declaration,
+      $._function_declaration,
       $.property_declaration,
       $.type_alias
     ),
@@ -286,28 +282,21 @@ module.exports = grammar({
       choice("class", seq(optional(seq("fun", repeat($._NL))), "interface")),
       repeat($._NL),
       field('name', $.simple_identifier),
-      repeat($._NL),
-      optional($.type_parameters),
-      repeat($._NL),
-      optional($.primary_constructor),
+      optional(seq(repeat($._NL), $.type_parameters)),
+      optional(seq(repeat($._NL), $.primary_constructor)),
       optional(seq(repeat($._NL), ":", repeat($._NL),  $._delegation_specifiers)),
-      repeat($._NL),
-      optional($.type_constraints),
-      repeat($._NL),
-      optional(field('body', $.class_body)),
+      optional(seq(repeat($._NL), $.type_constraints)),
+      optional(seq(repeat($._NL), field('body', $.class_body))),
     ),
 
     enum_class_declaration: $ => seq(
       optional(field('modifiers', $.modifiers)),
       seq("enum", "class"),
       field('name', $.simple_identifier),
-      repeat($._NL),
-      optional($.type_parameters),
-      repeat($._NL),
-      optional($.primary_constructor),
-      optional(seq(repeat($._NL), ":", repeat($._NL), $._delegation_specifiers)),
-      optional($.type_constraints),
-      repeat($._NL),
+      optional(seq(repeat($._NL), $.type_parameters)),
+      optional(seq(repeat($._NL), $.primary_constructor)),
+      optional(seq(repeat($._NL), ":", repeat($._NL),  $._delegation_specifiers)),
+      optional(seq(repeat($._NL), $.type_constraints)),
       optional(field('body', $.enum_class_body))
     ),
 
@@ -458,6 +447,22 @@ module.exports = grammar({
       )
     ),
 
+    _function_declaration: $ => choice(
+      $.function_declaration,
+      seq(alias($.function_declaration_no_body, $.function_declaration), $._semi)
+    ),
+
+    function_declaration_no_body: $ => seq(
+      optional(field('modifiers', $.modifiers)),
+      "fun",
+      optional($.type_parameters),
+      optional(seq(repeat($._NL), field('receiver_type', $.receiver_type), repeat($._NL), optional(choice($._dot, '.')))),
+      field('name', $.simple_identifier),
+      field('parameters', $.function_value_parameters),
+      optional(seq(repeat($._NL), ":", repeat($._NL), field('type', $._type))),
+      optional(seq(repeat($._NL), $.type_constraints)),
+    ),
+
     function_declaration: $ => prec.right(seq(
       optional(field('modifiers', $.modifiers)),
       "fun",
@@ -466,9 +471,9 @@ module.exports = grammar({
       field('name', $.simple_identifier),
       field('parameters', $.function_value_parameters),
       optional(seq(repeat($._NL), ":", repeat($._NL), field('type', $._type))),
-      optional($.type_constraints),
-      repeat($._NL),
-      optional(field('body', $.function_body))
+      optional(seq(repeat($._NL), $.type_constraints)),
+      repeat($._NL), 
+      field('body', $.function_body)
     )),
 
     function_body: $ => choice(
@@ -688,7 +693,9 @@ module.exports = grammar({
     // Statements
     // ==========
 
-    statements: $ => seq(sep1($.statement, repeat1($._semi)), repeat($._semi)),
+    _statements: $ => seq($.statements, repeat($._semi)),
+
+    statements: $ => seq(sep1($.statement, repeat1($._semi)), optional(seq(repeat($._NL), prec.dynamic(1, ";")))),
 
     statement: $ => choice(
       $._declaration,
@@ -702,12 +709,12 @@ module.exports = grammar({
       "@"
     )),
 
-    block: $ => prec(PREC.BLOCK, seq(
+    block: $ => seq(
       "{",
       repeat($._NL),
-      optional($.statements),
+      optional($._statements),
       "}")
-    ),
+    ,
 
     _loop_statement: $ => choice(
       $.for_statement,
@@ -1052,13 +1059,13 @@ module.exports = grammar({
       seq("$", alias($.simple_identifier, $.interpolated_identifier))
     ),
 
-    lambda_literal: $ => seq(
+    lambda_literal: $ => prec(-1, seq(
       "{",
       repeat($._NL),
       optional(seq(optional(field('parameters', $.lambda_parameters)), repeat($._NL), "->", repeat($._NL))),
-      optional(field('body', $.statements)),
+      optional(field('body', $._statements)),
       "}"
-    ),
+    )),
 
     multi_variable_declaration: $ => seq(
       "(",
@@ -1117,7 +1124,8 @@ module.exports = grammar({
         seq(
           optional(field('consequence', $._control_body_structure)),
           repeat($._NL),
-          "else",
+          // We need to give else a higher precedence to extend the if-expression to the right
+          prec.dynamic(1, "else"),
           repeat($._NL),
           field('alternative', $._control_body_structure)
         )
