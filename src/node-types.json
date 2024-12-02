@@ -223,107 +223,7 @@
           "named": true
         },
         {
-          "type": "anonymous_function",
-          "named": true
-        },
-        {
-          "type": "bin_literal",
-          "named": true
-        },
-        {
-          "type": "boolean_literal",
-          "named": true
-        },
-        {
-          "type": "call_expression",
-          "named": true
-        },
-        {
-          "type": "callable_reference",
-          "named": true
-        },
-        {
-          "type": "character_literal",
-          "named": true
-        },
-        {
-          "type": "collection_literal",
-          "named": true
-        },
-        {
-          "type": "dot_qualified_expression",
-          "named": true
-        },
-        {
-          "type": "hex_literal",
-          "named": true
-        },
-        {
-          "type": "if_expression",
-          "named": true
-        },
-        {
-          "type": "index_access_expression",
-          "named": true
-        },
-        {
-          "type": "integer_literal",
-          "named": true
-        },
-        {
-          "type": "jump_expression",
-          "named": true
-        },
-        {
-          "type": "lambda_literal",
-          "named": true
-        },
-        {
-          "type": "long_literal",
-          "named": true
-        },
-        {
-          "type": "null_literal",
-          "named": true
-        },
-        {
-          "type": "object_literal",
-          "named": true
-        },
-        {
-          "type": "postfix_expression",
-          "named": true
-        },
-        {
-          "type": "real_literal",
-          "named": true
-        },
-        {
-          "type": "simple_identifier",
-          "named": true
-        },
-        {
-          "type": "string_literal",
-          "named": true
-        },
-        {
-          "type": "super_expression",
-          "named": true
-        },
-        {
-          "type": "this_expression",
-          "named": true
-        },
-        {
-          "type": "try_expression",
-          "named": true
-        },
-        {
-          "type": "unsigned_literal",
-          "named": true
-        },
-        {
-          "type": "when_expression",
+          "type": "expression",
           "named": true
         }
       ]
@@ -560,6 +460,20 @@
           }
         ]
       }
+    },
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "annotation",
+          "named": true
+        },
+        {
+          "type": "label",
+          "named": true
+        }
+      ]
     }
   },
   {
@@ -833,6 +747,10 @@
       "required": false,
       "types": [
         {
+          "type": "annotation",
+          "named": true
+        },
+        {
           "type": "delegation_specifier",
           "named": true
         },
@@ -1005,6 +923,10 @@
       "multiple": true,
       "required": false,
       "types": [
+        {
+          "type": "annotation",
+          "named": true
+        },
         {
           "type": "delegation_specifier",
           "named": true
@@ -1355,6 +1277,10 @@
       "required": false,
       "types": [
         {
+          "type": "annotation",
+          "named": true
+        },
+        {
           "type": "delegation_specifier",
           "named": true
         },
@@ -1466,6 +1392,10 @@
       "required": true,
       "types": [
         {
+          "type": "annotated_expression",
+          "named": true
+        },
+        {
           "type": "anonymous_function",
           "named": true
         },
@@ -1519,6 +1449,10 @@
         },
         {
           "type": "integer_literal",
+          "named": true
+        },
+        {
+          "type": "labeled_expression",
           "named": true
         },
         {
@@ -2538,6 +2472,10 @@
       "required": false,
       "types": [
         {
+          "type": "annotation",
+          "named": true
+        },
+        {
           "type": "delegation_specifier",
           "named": true
         }
@@ -2552,6 +2490,10 @@
       "multiple": true,
       "required": true,
       "types": [
+        {
+          "type": "annotation",
+          "named": true
+        },
         {
           "type": "class_body",
           "named": true

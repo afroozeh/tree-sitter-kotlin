@@ -30,6 +30,7 @@ const PREC = {
   DOT: 16,
   POSTFIX: 16,
   PREFIX: 15,
+  LABEL: 14,
   AS: 13,
   MULTIPLICATIVE: 12,
   ADDITIVE: 11,
@@ -118,19 +119,18 @@ module.exports = grammar({
     // eventually dies if there is no '.'
     [$.identifier],
 
-    [$._simple_user_type, $._common_primary_expression],
+    [$._simple_user_type, $._primary_expression],
 
     [$._simple_user_type],
 
-    [$.annotated_expression, $.modifiers],
     [$.annotated_expression, $.when_subject],
-    [$.annotation],
+    [$._annotation],
     [$.variable_declaration],
     [$.class_parameter],
     [$.collection_literal],
     // becuase of $._NL after simple_identifier, all can reduce
-    [$.value_argument, $._common_primary_expression],
-    [$.variable_declaration, $._common_primary_expression],
+    [$.value_argument, $._primary_expression],
+    [$.variable_declaration, $._primary_expression],
     [$.variable_declaration, $._simple_user_type],
     [$.value_argument],
     [$.property_declaration],
@@ -138,7 +138,6 @@ module.exports = grammar({
     [$.type_constraints],
     [$.do_while_statement],
     [$._delegation_specifiers],
-    [$.explicit_delegation, $._primary_expression],
     [$.function_value_parameters],
     [$.class_parameters],
     [$.source_file],
@@ -166,12 +165,20 @@ module.exports = grammar({
     [$.when_entry],
     [$.receiver_type, $._type],
     [$.receiver_type],
-    [$._unary_expression, $.annotated_expression],
-    [$.annotated_expression, $._primary_expression],
-    [$.expression, $.annotated_expression],
     [$.function_declaration_no_body, $.function_declaration],
     [$.statements],
-    [$.statements, $._semi]
+    [$.statements, $._semi],
+    // There is an inherent ambiguity between annotated expressions and annotated function types:
+    // `@Annotation() f` should be parsed as an annotated expression while
+    // `@Annotation () -> Int` should be parsed as a function type
+    [$.annotated_expression, $.value_argument],
+    [$._annotated_delegation_specifier, $._type_modifier],
+    [$._annotated_delegation_specifier],
+    [$.explicit_delegation, $.expression],
+    [$.call_expression, $.labeled_expression, $.comparison_expression],
+    [$.assignment, $.annotated_expression, $.modifiers],
+    [$.assignment, $.annotated_expression],
+    [$.annotated_expression]
   ],
 
   extras: $ => [
@@ -332,14 +339,14 @@ module.exports = grammar({
 
     binding_pattern_kind: $ => choice("val", "var"),
 
-    _delegation_specifiers: $ => seq(
-      sep1(
-        $.delegation_specifier, 
-        repeat($._NL),
-        ",",
-        repeat($._NL),
-      )
+    _delegation_specifiers: $ => sep1(
+      $._annotated_delegation_specifier, 
+      repeat($._NL),
+      ",",
+      repeat($._NL),
     ),
+
+    _annotated_delegation_specifier: $ => seq(repeat($._annotation), repeat($._NL), $.delegation_specifier),
 
     delegation_specifier: $ => prec.right(choice(
       $.constructor_invocation,
@@ -353,8 +360,6 @@ module.exports = grammar({
       $.value_arguments
     ),
 
-    _annotated_delegation_specifier: $ => seq(repeat($.annotation), repeat($._NL), $.delegation_specifier),
-
     explicit_delegation: $ => seq(
       choice(
         $.user_type,
@@ -363,8 +368,7 @@ module.exports = grammar({
       "by",
       repeat($._NL),
       choice(
-        $._common_primary_expression,
-        $.parenthesized_expression,
+        $._primary_expression,
         alias($.simple_call_expression, $.call_expression),
         $.as_expression
       )
@@ -388,7 +392,7 @@ module.exports = grammar({
     type_constraints: $ => seq(repeat($._NL), "where", repeat($._NL), sep1($.type_constraint, repeat($._NL), ",", repeat($._NL))),
 
     type_constraint: $ => seq(
-      repeat($.annotation),
+      repeat($._annotation),
       alias($.simple_identifier, $.type_identifier),
       repeat($._NL),
       ":",
@@ -482,7 +486,7 @@ module.exports = grammar({
     ),
 
     variable_declaration: $ => seq(
-      // repeat($.annotation), TODO
+      // repeat($._annotation), TODO
       field('id', $.simple_identifier),
       optional(field('type', seq(repeat($._NL), ":", repeat($._NL), $._type)))
     ),
@@ -735,7 +739,7 @@ module.exports = grammar({
     )),
 
     _in_expression: $ => seq(
-      repeat($.annotation),
+      repeat($._annotation),
       field('var_decl', choice($.variable_declaration, $.multi_variable_declaration)),
       repeat($._NL),
       "in",
@@ -767,6 +771,7 @@ module.exports = grammar({
     )),
 
     assignment: $ => seq(
+      repeat(choice($.label, $._annotation)),
       field('left', $._directly_assignable_expression),
       field('op', $._assignment_operator),
       repeat($._NL),
@@ -798,8 +803,6 @@ module.exports = grammar({
       $.postfix_expression,
       $.as_expression,
       $.is_expression,
-      $.annotated_expression,
-      $.labeled_expression,
     ),
 
     jump_expression: $ => choice(
@@ -861,15 +864,9 @@ module.exports = grammar({
       ']')
     ),
 
-    // There is an inherent ambiguity between annotated expressions and annotated function types:
-    // `@Annotation() f` should be parsed as an annotated expression while
-    // `@Annotation () -> Int` should be parsed as a function type
-    // We cannot beforehand decide whether `()` is part of th annotation or not. To resolve this ambiguity
-    // is to exclude paranethesized expression to be able to be part of an annotation. All annotations that are function-call-lik
-    // should be parsed as a single annotation, and not an annotated expression on parenthesized expressions.
-    annotated_expression: $ => seq($.annotation, repeat($._NL), choice($._common_primary_expression, $.call_expression, $.postfix_expression, $.jump_expression)),
+    annotated_expression: $ => seq($._annotation, $.expression),
 
-    labeled_expression: $ => seq($.label, repeat($._NL), $.expression),
+    labeled_expression: $ => prec(PREC.LABEL, seq($.label, repeat($._NL), $.expression)),
 
     prefix_expression: $ => prec(PREC.PREFIX, seq(
       field('op', $._prefix_unary_operator), 
@@ -929,7 +926,7 @@ module.exports = grammar({
     // Suffixes
 
     annotated_lambda: $ => seq(
-      repeat($.annotation),
+      repeat($._annotation),
       optional($.label),
       $.lambda_literal
     ),
@@ -959,7 +956,7 @@ module.exports = grammar({
     ),
 
     value_argument: $ => seq(
-      optional($.annotation),
+      optional($._annotation),
       repeat($._NL),
       optional(seq($.simple_identifier, repeat($._NL), "=", repeat($._NL))),
       optional("*"),
@@ -968,12 +965,6 @@ module.exports = grammar({
     ),
 
     _primary_expression: $ => choice(
-      $._common_primary_expression,
-      $.call_expression,
-      $.parenthesized_expression,
-    ),
-
-    _common_primary_expression: $ => choice(
       $.simple_identifier,
       $._literal_constant,
       $.string_literal,
@@ -987,10 +978,16 @@ module.exports = grammar({
       $.try_expression,
       $.dot_qualified_expression,
       $.index_access_expression,
-      $.if_expression
+      $.if_expression,
+      $.annotated_expression,
+      $.parenthesized_expression,
+      $.call_expression,
+      $.labeled_expression
     ),
 
-    parenthesized_expression: $ => seq("(", repeat($._NL), $.expression, repeat($._NL), ")"),
+    // we need to give parenthesized expression a lower dymanic precedence to resolve ambiguities like
+    // @Annotation() in favor of a single annotation rather than an annotation of a parenthesized expression.
+    parenthesized_expression: $ => prec.dynamic(-1, seq("(", repeat($._NL), $.expression, repeat($._NL), ")")),
 
     collection_literal: $ => seq(
       "[", 
@@ -1151,7 +1148,7 @@ module.exports = grammar({
       "(",
       repeat($._NL),
       optional(seq(
-        repeat($.annotation),
+        repeat($._annotation),
         "val",
         $.variable_declaration,
         "=",
@@ -1220,7 +1217,7 @@ module.exports = grammar({
       repeat($._NL),
       "(",
       repeat($._NL),
-      repeat($.annotation),
+      repeat($._annotation),
       field('name', $.simple_identifier),
       ":",
       field('type', $._type),
@@ -1282,9 +1279,9 @@ module.exports = grammar({
     // Modifiers
     // ==========
 
-    modifiers: $ => repeat1(choice($.annotation, $._modifier)),
+    modifiers: $ => repeat1(choice($._annotation, $._modifier)),
 
-    parameter_modifiers: $ => prec.right(repeat1(choice($.annotation, $.parameter_modifier))),
+    parameter_modifiers: $ => prec.right(repeat1(choice($._annotation, $.parameter_modifier))),
 
     _modifier: $ => choice(
       $.class_modifier,
@@ -1299,7 +1296,7 @@ module.exports = grammar({
 
     type_modifiers: $ => repeat1($._type_modifier),
 
-    _type_modifier: $ => choice($.annotation, "suspend"),
+    _type_modifier: $ => choice($._annotation, "suspend"),
 
     class_modifier: $ => choice(
       "sealed",
@@ -1331,7 +1328,7 @@ module.exports = grammar({
     _type_parameter_modifier: $ => choice(
       $.reification_modifier,
       $.variance_modifier,
-      $.annotation
+      $._annotation
     ),
 
     function_modifier: $ => choice(
@@ -1368,10 +1365,12 @@ module.exports = grammar({
     // Annotations
     // ==========
 
-    annotation: $ => seq(
-      choice($._single_annotation, $._multi_annotation),
+    _annotation: $ => seq(
+      $.annotation,
       repeat($._NL)
     ),
+
+    annotation: $ => choice($._single_annotation, $._multi_annotation),
 
     _single_annotation: $ => seq(
       "@",

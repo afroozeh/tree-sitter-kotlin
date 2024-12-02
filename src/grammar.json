@@ -1112,43 +1112,61 @@
       "type": "SEQ",
       "members": [
         {
-          "type": "SEQ",
-          "members": [
-            {
-              "type": "SYMBOL",
-              "name": "delegation_specifier"
-            },
-            {
-              "type": "REPEAT",
-              "content": {
-                "type": "SEQ",
-                "members": [
-                  {
-                    "type": "REPEAT",
-                    "content": {
-                      "type": "SYMBOL",
-                      "name": "_NL"
-                    }
-                  },
-                  {
-                    "type": "STRING",
-                    "value": ","
-                  },
-                  {
-                    "type": "REPEAT",
-                    "content": {
-                      "type": "SYMBOL",
-                      "name": "_NL"
-                    }
-                  },
-                  {
-                    "type": "SYMBOL",
-                    "name": "delegation_specifier"
-                  }
-                ]
+          "type": "SYMBOL",
+          "name": "_annotated_delegation_specifier"
+        },
+        {
+          "type": "REPEAT",
+          "content": {
+            "type": "SEQ",
+            "members": [
+              {
+                "type": "REPEAT",
+                "content": {
+                  "type": "SYMBOL",
+                  "name": "_NL"
+                }
+              },
+              {
+                "type": "STRING",
+                "value": ","
+              },
+              {
+                "type": "REPEAT",
+                "content": {
+                  "type": "SYMBOL",
+                  "name": "_NL"
+                }
+              },
+              {
+                "type": "SYMBOL",
+                "name": "_annotated_delegation_specifier"
               }
-            }
-          ]
+            ]
+          }
+        }
+      ]
+    },
+    "_annotated_delegation_specifier": {
+      "type": "SEQ",
+      "members": [
+        {
+          "type": "REPEAT",
+          "content": {
+            "type": "SYMBOL",
+            "name": "_annotation"
+          }
+        },
+        {
+          "type": "REPEAT",
+          "content": {
+            "type": "SYMBOL",
+            "name": "_NL"
+          }
+        },
+        {
+          "type": "SYMBOL",
+          "name": "delegation_specifier"
         }
       ]
     },
@@ -1190,29 +1208,6 @@
         }
       ]
     },
-    "_annotated_delegation_specifier": {
-      "type": "SEQ",
-      "members": [
-        {
-          "type": "REPEAT",
-          "content": {
-            "type": "SYMBOL",
-            "name": "annotation"
-          }
-        },
-        {
-          "type": "REPEAT",
-          "content": {
-            "type": "SYMBOL",
-            "name": "_NL"
-          }
-        },
-        {
-          "type": "SYMBOL",
-          "name": "delegation_specifier"
-        }
-      ]
-    },
     "explicit_delegation": {
       "type": "SEQ",
       "members": [
@@ -1245,11 +1240,7 @@
           "members": [
             {
               "type": "SYMBOL",
-              "name": "_common_primary_expression"
-            },
-            {
-              "type": "SYMBOL",
-              "name": "parenthesized_expression"
+              "name": "_primary_expression"
             },
             {
               "type": "ALIAS",
@@ -1471,7 +1462,7 @@
           "type": "REPEAT",
           "content": {
             "type": "SYMBOL",
-            "name": "annotation"
+            "name": "_annotation"
           }
         },
         {
@@ -4000,7 +3991,7 @@
           "type": "REPEAT",
           "content": {
             "type": "SYMBOL",
-            "name": "annotation"
+            "name": "_annotation"
           }
         },
         {
@@ -4169,6 +4160,22 @@
       "type": "SEQ",
       "members": [
         {
+          "type": "REPEAT",
+          "content": {
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "label"
+              },
+              {
+                "type": "SYMBOL",
+                "name": "_annotation"
+              }
+            ]
+          }
+        },
+        {
           "type": "FIELD",
           "name": "left",
           "content": {
@@ -4261,14 +4268,6 @@
         {
           "type": "SYMBOL",
           "name": "is_expression"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "annotated_expression"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "labeled_expression"
         }
       ]
     },
@@ -4572,57 +4571,37 @@
       "members": [
         {
           "type": "SYMBOL",
-          "name": "annotation"
-        },
-        {
-          "type": "REPEAT",
-          "content": {
-            "type": "SYMBOL",
-            "name": "_NL"
-          }
-        },
-        {
-          "type": "CHOICE",
-          "members": [
-            {
-              "type": "SYMBOL",
-              "name": "_common_primary_expression"
-            },
-            {
-              "type": "SYMBOL",
-              "name": "call_expression"
-            },
-            {
-              "type": "SYMBOL",
-              "name": "postfix_expression"
-            },
-            {
-              "type": "SYMBOL",
-              "name": "jump_expression"
-            }
-          ]
-        }
-      ]
-    },
-    "labeled_expression": {
-      "type": "SEQ",
-      "members": [
-        {
-          "type": "SYMBOL",
-          "name": "label"
-        },
-        {
-          "type": "REPEAT",
-          "content": {
-            "type": "SYMBOL",
-            "name": "_NL"
-          }
+          "name": "_annotation"
         },
         {
           "type": "SYMBOL",
           "name": "expression"
         }
       ]
+    },
+    "labeled_expression": {
+      "type": "PREC",
+      "value": 14,
+      "content": {
+        "type": "SEQ",
+        "members": [
+          {
+            "type": "SYMBOL",
+            "name": "label"
+          },
+          {
+            "type": "REPEAT",
+            "content": {
+              "type": "SYMBOL",
+              "name": "_NL"
+            }
+          },
+          {
+            "type": "SYMBOL",
+            "name": "expression"
+          }
+        ]
+      }
     },
     "prefix_expression": {
       "type": "PREC",
@@ -5064,7 +5043,7 @@
           "type": "REPEAT",
           "content": {
             "type": "SYMBOL",
-            "name": "annotation"
+            "name": "_annotation"
           }
         },
         {
@@ -5266,7 +5245,7 @@
           "members": [
             {
               "type": "SYMBOL",
-              "name": "annotation"
+              "name": "_annotation"
             },
             {
               "type": "BLANK"
@@ -5345,23 +5324,6 @@
       "members": [
         {
           "type": "SYMBOL",
-          "name": "_common_primary_expression"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "call_expression"
-        },
-        {
-          "type": "SYMBOL",
-          "name": "parenthesized_expression"
-        }
-      ]
-    },
-    "_common_primary_expression": {
-      "type": "CHOICE",
-      "members": [
-        {
-          "type": "SYMBOL",
           "name": "simple_identifier"
         },
         {
@@ -5415,39 +5377,59 @@
         {
           "type": "SYMBOL",
           "name": "if_expression"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "annotated_expression"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "parenthesized_expression"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "call_expression"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "labeled_expression"
         }
       ]
     },
     "parenthesized_expression": {
-      "type": "SEQ",
-      "members": [
-        {
-          "type": "STRING",
-          "value": "("
-        },
-        {
-          "type": "REPEAT",
-          "content": {
+      "type": "PREC_DYNAMIC",
+      "value": -1,
+      "content": {
+        "type": "SEQ",
+        "members": [
+          {
+            "type": "STRING",
+            "value": "("
+          },
+          {
+            "type": "REPEAT",
+            "content": {
+              "type": "SYMBOL",
+              "name": "_NL"
+            }
+          },
+          {
             "type": "SYMBOL",
-            "name": "_NL"
+            "name": "expression"
+          },
+          {
+            "type": "REPEAT",
+            "content": {
+              "type": "SYMBOL",
+              "name": "_NL"
+            }
+          },
+          {
+            "type": "STRING",
+            "value": ")"
           }
-        },
-        {
-          "type": "SYMBOL",
-          "name": "expression"
-        },
-        {
-          "type": "REPEAT",
-          "content": {
-            "type": "SYMBOL",
-            "name": "_NL"
-          }
-        },
-        {
-          "type": "STRING",
-          "value": ")"
-        }
-      ]
+        ]
+      }
     },
     "collection_literal": {
       "type": "SEQ",
@@ -6458,7 +6440,7 @@
                   "type": "REPEAT",
                   "content": {
                     "type": "SYMBOL",
-                    "name": "annotation"
+                    "name": "_annotation"
                   }
                 },
                 {
@@ -6861,7 +6843,7 @@
           "type": "REPEAT",
           "content": {
             "type": "SYMBOL",
-            "name": "annotation"
+            "name": "_annotation"
           }
         },
         {
@@ -7291,7 +7273,7 @@
         "members": [
           {
             "type": "SYMBOL",
-            "name": "annotation"
+            "name": "_annotation"
           },
           {
             "type": "SYMBOL",
@@ -7310,7 +7292,7 @@
           "members": [
             {
               "type": "SYMBOL",
-              "name": "annotation"
+              "name": "_annotation"
             },
             {
               "type": "SYMBOL",
@@ -7369,7 +7351,7 @@
       "members": [
         {
           "type": "SYMBOL",
-          "name": "annotation"
+          "name": "_annotation"
         },
         {
           "type": "STRING",
@@ -7469,7 +7451,7 @@
         },
         {
           "type": "SYMBOL",
-          "name": "annotation"
+          "name": "_annotation"
         }
       ]
     },
@@ -7557,21 +7539,12 @@
         }
       ]
     },
-    "annotation": {
+    "_annotation": {
       "type": "SEQ",
       "members": [
         {
-          "type": "CHOICE",
-          "members": [
-            {
-              "type": "SYMBOL",
-              "name": "_single_annotation"
-            },
-            {
-              "type": "SYMBOL",
-              "name": "_multi_annotation"
-            }
-          ]
+          "type": "SYMBOL",
+          "name": "annotation"
         },
         {
           "type": "REPEAT",
@@ -7579,6 +7552,19 @@
             "type": "SYMBOL",
             "name": "_NL"
           }
+        }
+      ]
+    },
+    "annotation": {
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "SYMBOL",
+          "name": "_single_annotation"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "_multi_annotation"
         }
       ]
     },
@@ -8779,21 +8765,17 @@
     ],
     [
       "_simple_user_type",
-      "_common_primary_expression"
+      "_primary_expression"
     ],
     [
       "_simple_user_type"
     ],
     [
       "annotated_expression",
-      "modifiers"
-    ],
-    [
-      "annotated_expression",
       "when_subject"
     ],
     [
-      "annotation"
+      "_annotation"
     ],
     [
       "variable_declaration"
@@ -8806,11 +8788,11 @@
     ],
     [
       "value_argument",
-      "_common_primary_expression"
+      "_primary_expression"
     ],
     [
       "variable_declaration",
-      "_common_primary_expression"
+      "_primary_expression"
     ],
     [
       "variable_declaration",
@@ -8833,10 +8815,6 @@
     ],
     [
       "_delegation_specifiers"
-    ],
-    [
-      "explicit_delegation",
-      "_primary_expression"
     ],
     [
       "function_value_parameters"
@@ -8942,18 +8920,6 @@
       "receiver_type"
     ],
     [
-      "_unary_expression",
-      "annotated_expression"
-    ],
-    [
-      "annotated_expression",
-      "_primary_expression"
-    ],
-    [
-      "expression",
-      "annotated_expression"
-    ],
-    [
       "function_declaration_no_body",
       "function_declaration"
     ],
@@ -8963,6 +8929,38 @@
     [
       "statements",
       "_semi"
+    ],
+    [
+      "annotated_expression",
+      "value_argument"
+    ],
+    [
+      "_annotated_delegation_specifier",
+      "_type_modifier"
+    ],
+    [
+      "_annotated_delegation_specifier"
+    ],
+    [
+      "explicit_delegation",
+      "expression"
+    ],
+    [
+      "call_expression",
+      "labeled_expression",
+      "comparison_expression"
+    ],
+    [
+      "assignment",
+      "annotated_expression",
+      "modifiers"
+    ],
+    [
+      "assignment",
+      "annotated_expression"
+    ],
+    [
+      "annotated_expression"
     ]
   ],
   "precedences": [],
