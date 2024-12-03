@@ -163,7 +163,30 @@ module.exports = grammar({
     [$.class_body, $.enum_class_body],
     [$._when_entry],
     [$.when_entries],
-    [$.when_expression]
+    [$.when_expression],
+    [$.variable_declaration, $.assignment, $.annotated_expression, $.modifiers],
+    [$.variable_declaration, $.assignment, $.annotated_expression],
+    [$.variable_declaration, $._type_modifier],
+    [$.variable_declaration, $.annotated_expression],
+    [$.lambda_parameters],
+
+    [$.import_header, $._soft_keywords],
+    [$.function_modifier, $._soft_keywords],
+    [$.class_modifier, $._soft_keywords],
+    [$.member_modifier, $._soft_keywords],
+    [$.visibility_modifier, $._soft_keywords],
+    [$.property_modifier, $._soft_keywords],
+    [$.inheritance_modifier, $._soft_keywords],
+    [$.parameter_modifier, $._soft_keywords],
+    [$.platform_modifier, $._soft_keywords],
+    [$.use_site_target, $._soft_keywords],
+    [$._type_modifier, $._soft_keywords],
+    [$.variance_modifier, $._soft_keywords],
+    [$.reification_modifier, $._soft_keywords],
+    [$.secondary_constructor, $._soft_keywords],
+    [$.anonymous_initializer, $._soft_keywords],
+    [$.getter, $._soft_keywords],
+    [$.setter, $._soft_keywords]
   ],
 
   extras: $ => [
@@ -237,7 +260,7 @@ module.exports = grammar({
     _top_level_object: $ => seq($._declaration, repeat($._semi)),
 
     _top_level_statements: $ =>
-      repeat1(seq(alias($._top_level_statement, $.statement), repeat($._semi))),
+      repeat1(seq(alias($._top_level_statement, $.statement), repeat1($._semi))),
 
     _top_level_statement: $ => choice(
       $.assignment,
@@ -426,7 +449,7 @@ module.exports = grammar({
 
     _function_declaration: $ => choice(
       $.function_declaration,
-      seq(alias($.function_declaration_no_body, $.function_declaration), $._semi)
+      alias($.function_declaration_no_body, $.function_declaration)
     ),
 
     function_declaration_no_body: $ => seq(
@@ -459,7 +482,8 @@ module.exports = grammar({
     ),
 
     variable_declaration: $ => seq(
-      // repeat($._annotation), TODO
+      repeat($._annotation),
+      repeat($._NL),
       field('id', $.simple_identifier),
       optional(field('type', seq(repeat($._NL), ":", repeat($._NL), $._type)))
     ),
@@ -490,8 +514,8 @@ module.exports = grammar({
     property_delegate: $ => seq("by", repeat($._NL), $.expression),
 
     _setter_getter: $ => choice(
-      seq($.getter, repeat($._NL), optional($.setter)),
-      seq($.setter, repeat($._NL), optional($.getter))
+      seq($.getter, optional(seq(repeat($._NL), $.setter))),
+      seq($.setter, optional(seq($.getter, repeat($._NL))))
     ),
 
     getter: $ => prec.right(seq(
@@ -688,11 +712,13 @@ module.exports = grammar({
     )),
 
     block: $ => seq(
-      "{",
+      // This is to disabmiguate between function declarations with and without bodies.
+      // Function declarations with bodies should always win.
+      prec.dynamic(1, "{"),
       repeat($._NL),
       optional($._statements),
-      "}")
-    ,
+      "}"
+    ),
 
     _loop_statement: $ => choice(
       $.for_statement,
@@ -1382,7 +1408,7 @@ module.exports = grammar({
 
     simple_identifier: $ => choice($._lexical_identifier, $._soft_keywords),
 
-    _soft_keywords: $ => prec(-1, choice(
+    _soft_keywords: $ => choice(
       "by",
       "catch",
       "constructor",
@@ -1427,7 +1453,8 @@ module.exports = grammar({
       "sealed",
       "suspend",
       "tailrec",
-      "vararg")),
+      "vararg"
+    ),
 
     identifier: $ => sep1($.simple_identifier, "."),
 

@@ -327,7 +327,7 @@
             "value": "statement"
           },
           {
-            "type": "REPEAT",
+            "type": "REPEAT1",
             "content": {
               "type": "SYMBOL",
               "name": "_semi"
@@ -1686,22 +1686,13 @@
           "name": "function_declaration"
         },
         {
-          "type": "SEQ",
-          "members": [
-            {
-              "type": "ALIAS",
-              "content": {
-                "type": "SYMBOL",
-                "name": "function_declaration_no_body"
-              },
-              "named": true,
-              "value": "function_declaration"
-            },
-            {
-              "type": "SYMBOL",
-              "name": "_semi"
-            }
-          ]
+          "type": "ALIAS",
+          "content": {
+            "type": "SYMBOL",
+            "name": "function_declaration_no_body"
+          },
+          "named": true,
+          "value": "function_declaration"
         }
       ]
     },
@@ -2105,6 +2096,20 @@
       "type": "SEQ",
       "members": [
         {
+          "type": "REPEAT",
+          "content": {
+            "type": "SYMBOL",
+            "name": "_annotation"
+          }
+        },
+        {
+          "type": "REPEAT",
+          "content": {
+            "type": "SYMBOL",
+            "name": "_NL"
+          }
+        },
+        {
           "type": "FIELD",
           "name": "id",
           "content": {
@@ -2388,18 +2393,23 @@
               "name": "getter"
             },
             {
-              "type": "REPEAT",
-              "content": {
-                "type": "SYMBOL",
-                "name": "_NL"
-              }
-            },
-            {
               "type": "CHOICE",
               "members": [
                 {
-                  "type": "SYMBOL",
-                  "name": "setter"
+                  "type": "SEQ",
+                  "members": [
+                    {
+                      "type": "REPEAT",
+                      "content": {
+                        "type": "SYMBOL",
+                        "name": "_NL"
+                      }
+                    },
+                    {
+                      "type": "SYMBOL",
+                      "name": "setter"
+                    }
+                  ]
                 },
                 {
                   "type": "BLANK"
@@ -2416,18 +2426,23 @@
               "name": "setter"
             },
             {
-              "type": "REPEAT",
-              "content": {
-                "type": "SYMBOL",
-                "name": "_NL"
-              }
-            },
-            {
               "type": "CHOICE",
               "members": [
                 {
-                  "type": "SYMBOL",
-                  "name": "getter"
+                  "type": "SEQ",
+                  "members": [
+                    {
+                      "type": "SYMBOL",
+                      "name": "getter"
+                    },
+                    {
+                      "type": "REPEAT",
+                      "content": {
+                        "type": "SYMBOL",
+                        "name": "_NL"
+                      }
+                    }
+                  ]
                 },
                 {
                   "type": "BLANK"
@@ -3720,8 +3735,12 @@
       "type": "SEQ",
       "members": [
         {
-          "type": "STRING",
-          "value": "{"
+          "type": "PREC_DYNAMIC",
+          "value": 1,
+          "content": {
+            "type": "STRING",
+            "value": "{"
+          }
         },
         {
           "type": "REPEAT",
@@ -7620,189 +7639,185 @@
       ]
     },
     "_soft_keywords": {
-      "type": "PREC",
-      "value": -1,
-      "content": {
-        "type": "CHOICE",
-        "members": [
-          {
-            "type": "STRING",
-            "value": "by"
-          },
-          {
-            "type": "STRING",
-            "value": "catch"
-          },
-          {
-            "type": "STRING",
-            "value": "constructor"
-          },
-          {
-            "type": "STRING",
-            "value": "delegate"
-          },
-          {
-            "type": "STRING",
-            "value": "dyanamic"
-          },
-          {
-            "type": "STRING",
-            "value": "field"
-          },
-          {
-            "type": "STRING",
-            "value": "file"
-          },
-          {
-            "type": "STRING",
-            "value": "finally"
-          },
-          {
-            "type": "STRING",
-            "value": "get"
-          },
-          {
-            "type": "STRING",
-            "value": "import"
-          },
-          {
-            "type": "STRING",
-            "value": "init"
-          },
-          {
-            "type": "STRING",
-            "value": "param"
-          },
-          {
-            "type": "STRING",
-            "value": "property"
-          },
-          {
-            "type": "STRING",
-            "value": "receiver"
-          },
-          {
-            "type": "STRING",
-            "value": "set"
-          },
-          {
-            "type": "STRING",
-            "value": "setparam"
-          },
-          {
-            "type": "STRING",
-            "value": "value"
-          },
-          {
-            "type": "STRING",
-            "value": "where"
-          },
-          {
-            "type": "STRING",
-            "value": "abstract"
-          },
-          {
-            "type": "STRING",
-            "value": "actual"
-          },
-          {
-            "type": "STRING",
-            "value": "annotation"
-          },
-          {
-            "type": "STRING",
-            "value": "companion"
-          },
-          {
-            "type": "STRING",
-            "value": "const"
-          },
-          {
-            "type": "STRING",
-            "value": "crossline"
-          },
-          {
-            "type": "STRING",
-            "value": "data"
-          },
-          {
-            "type": "STRING",
-            "value": "enum"
-          },
-          {
-            "type": "STRING",
-            "value": "expect"
-          },
-          {
-            "type": "STRING",
-            "value": "data"
-          },
-          {
-            "type": "STRING",
-            "value": "inner"
-          },
-          {
-            "type": "STRING",
-            "value": "internal"
-          },
-          {
-            "type": "STRING",
-            "value": "lateinit"
-          },
-          {
-            "type": "STRING",
-            "value": "noinline"
-          },
-          {
-            "type": "STRING",
-            "value": "open"
-          },
-          {
-            "type": "STRING",
-            "value": "operator"
-          },
-          {
-            "type": "STRING",
-            "value": "out"
-          },
-          {
-            "type": "STRING",
-            "value": "override"
-          },
-          {
-            "type": "STRING",
-            "value": "private"
-          },
-          {
-            "type": "STRING",
-            "value": "protected"
-          },
-          {
-            "type": "STRING",
-            "value": "public"
-          },
-          {
-            "type": "STRING",
-            "value": "reified"
-          },
-          {
-            "type": "STRING",
-            "value": "sealed"
-          },
-          {
-            "type": "STRING",
-            "value": "suspend"
-          },
-          {
-            "type": "STRING",
-            "value": "tailrec"
-          },
-          {
-            "type": "STRING",
-            "value": "vararg"
-          }
-        ]
-      }
+      "type": "CHOICE",
+      "members": [
+        {
+          "type": "STRING",
+          "value": "by"
+        },
+        {
+          "type": "STRING",
+          "value": "catch"
+        },
+        {
+          "type": "STRING",
+          "value": "constructor"
+        },
+        {
+          "type": "STRING",
+          "value": "delegate"
+        },
+        {
+          "type": "STRING",
+          "value": "dyanamic"
+        },
+        {
+          "type": "STRING",
+          "value": "field"
+        },
+        {
+          "type": "STRING",
+          "value": "file"
+        },
+        {
+          "type": "STRING",
+          "value": "finally"
+        },
+        {
+          "type": "STRING",
+          "value": "get"
+        },
+        {
+          "type": "STRING",
+          "value": "import"
+        },
+        {
+          "type": "STRING",
+          "value": "init"
+        },
+        {
+          "type": "STRING",
+          "value": "param"
+        },
+        {
+          "type": "STRING",
+          "value": "property"
+        },
+        {
+          "type": "STRING",
+          "value": "receiver"
+        },
+        {
+          "type": "STRING",
+          "value": "set"
+        },
+        {
+          "type": "STRING",
+          "value": "setparam"
+        },
+        {
+          "type": "STRING",
+          "value": "value"
+        },
+        {
+          "type": "STRING",
+          "value": "where"
+        },
+        {
+          "type": "STRING",
+          "value": "abstract"
+        },
+        {
+          "type": "STRING",
+          "value": "actual"
+        },
+        {
+          "type": "STRING",
+          "value": "annotation"
+        },
+        {
+          "type": "STRING",
+          "value": "companion"
+        },
+        {
+          "type": "STRING",
+          "value": "const"
+        },
+        {
+          "type": "STRING",
+          "value": "crossline"
+        },
+        {
+          "type": "STRING",
+          "value": "data"
+        },
+        {
+          "type": "STRING",
+          "value": "enum"
+        },
+        {
+          "type": "STRING",
+          "value": "expect"
+        },
+        {
+          "type": "STRING",
+          "value": "data"
+        },
+        {
+          "type": "STRING",
+          "value": "inner"
+        },
+        {
+          "type": "STRING",
+          "value": "internal"
+        },
+        {
+          "type": "STRING",
+          "value": "lateinit"
+        },
+        {
+          "type": "STRING",
+          "value": "noinline"
+        },
+        {
+          "type": "STRING",
+          "value": "open"
+        },
+        {
+          "type": "STRING",
+          "value": "operator"
+        },
+        {
+          "type": "STRING",
+          "value": "out"
+        },
+        {
+          "type": "STRING",
+          "value": "override"
+        },
+        {
+          "type": "STRING",
+          "value": "private"
+        },
+        {
+          "type": "STRING",
+          "value": "protected"
+        },
+        {
+          "type": "STRING",
+          "value": "public"
+        },
+        {
+          "type": "STRING",
+          "value": "reified"
+        },
+        {
+          "type": "STRING",
+          "value": "sealed"
+        },
+        {
+          "type": "STRING",
+          "value": "suspend"
+        },
+        {
+          "type": "STRING",
+          "value": "tailrec"
+        },
+        {
+          "type": "STRING",
+          "value": "vararg"
+        }
+      ]
     },
     "identifier": {
       "type": "SEQ",
@@ -8818,6 +8833,96 @@
     ],
     [
       "when_expression"
+    ],
+    [
+      "variable_declaration",
+      "assignment",
+      "annotated_expression",
+      "modifiers"
+    ],
+    [
+      "variable_declaration",
+      "assignment",
+      "annotated_expression"
+    ],
+    [
+      "variable_declaration",
+      "_type_modifier"
+    ],
+    [
+      "variable_declaration",
+      "annotated_expression"
+    ],
+    [
+      "lambda_parameters"
+    ],
+    [
+      "import_header",
+      "_soft_keywords"
+    ],
+    [
+      "function_modifier",
+      "_soft_keywords"
+    ],
+    [
+      "class_modifier",
+      "_soft_keywords"
+    ],
+    [
+      "member_modifier",
+      "_soft_keywords"
+    ],
+    [
+      "visibility_modifier",
+      "_soft_keywords"
+    ],
+    [
+      "property_modifier",
+      "_soft_keywords"
+    ],
+    [
+      "inheritance_modifier",
+      "_soft_keywords"
+    ],
+    [
+      "parameter_modifier",
+      "_soft_keywords"
+    ],
+    [
+      "platform_modifier",
+      "_soft_keywords"
+    ],
+    [
+      "use_site_target",
+      "_soft_keywords"
+    ],
+    [
+      "_type_modifier",
+      "_soft_keywords"
+    ],
+    [
+      "variance_modifier",
+      "_soft_keywords"
+    ],
+    [
+      "reification_modifier",
+      "_soft_keywords"
+    ],
+    [
+      "secondary_constructor",
+      "_soft_keywords"
+    ],
+    [
+      "anonymous_initializer",
+      "_soft_keywords"
+    ],
+    [
+      "getter",
+      "_soft_keywords"
+    ],
+    [
+      "setter",
+      "_soft_keywords"
     ]
   ],
   "precedences": [],
