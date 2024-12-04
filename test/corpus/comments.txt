@@ -22,10 +22,24 @@ Comments
       (integer_literal)
       (integer_literal)))
   (line_comment)
-  (multiline_comment
-    (multiline_comment
-      (multiline_comment)))
+  (multiline_comment)
   (line_comment)
+  (multiline_comment))
+
+
+================================================================================
+Multi-line comments
+================================================================================
+
+/***/
+/** aaa **/
+/* /***/ **/
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (multiline_comment)
+  (multiline_comment)
   (multiline_comment))
 
 ================================================================================
@@ -154,6 +168,7 @@ f(1 //line comment
         (value_argument
           (additive_expression
             (integer_literal)
+            (line_comment)
             (multiline_comment)
             (integer_literal)))))))
 
@@ -453,12 +468,12 @@ val <A, B> @[a] (() -> Unit).foo: P
     (binding_pattern_kind)
     receiver_type: (receiver_type
       (parenthesized_type
+        (type_modifiers
+          (annotation
+            (user_type
+              (type_identifier))))
         (function_type
           (receiver_type
-            modifiers: (type_modifiers
-              (annotation
-                (user_type
-                  (type_identifier))))
             type: (user_type
               (type_identifier)
               (type_arguments
@@ -482,12 +497,12 @@ val <A, B> @[a] (() -> Unit).foo: P
     (binding_pattern_kind)
     receiver_type: (receiver_type
       (parenthesized_type
+        (type_modifiers
+          (annotation
+            (user_type
+              (type_identifier))))
         (function_type
           (receiver_type
-            modifiers: (type_modifiers
-              (annotation
-                (user_type
-                  (type_identifier))))
             type: (user_type
               (type_identifier)
               (type_arguments
@@ -522,12 +537,12 @@ val <A, B> @[a] (() -> Unit).foo: P
           (user_type
             (type_identifier))))
       (parenthesized_type
+        (type_modifiers
+          (annotation
+            (user_type
+              (type_identifier))))
         (function_type
           (receiver_type
-            modifiers: (type_modifiers
-              (annotation
-                (user_type
-                  (type_identifier))))
             type: (user_type
               (type_identifier)
               (type_arguments

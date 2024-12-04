@@ -186,7 +186,17 @@ module.exports = grammar({
     [$.secondary_constructor, $._soft_keywords],
     [$.anonymous_initializer, $._soft_keywords],
     [$.getter, $._soft_keywords],
-    [$.setter, $._soft_keywords]
+    [$.setter, $._soft_keywords],
+
+    [$.multiplicative_expression, $.additive_expression, $.range_expression, $.infix_expression, $.elvis_expression, $.in_expression, $.is_expression, $.comparison_expression, $.equality_expression, $.conjunction_expression, $.disjunction_expression],
+    [$.dot_qualified_expression, $.labeled_expression, $.multiplicative_expression, $.additive_expression, $.range_expression, $.infix_expression, $.elvis_expression, $.in_expression, $.is_expression, $.comparison_expression, $.equality_expression, $.conjunction_expression, $.disjunction_expression],
+    [$.dot_qualified_expression, $.prefix_expression, $.multiplicative_expression, $.additive_expression, $.range_expression, $.infix_expression, $.elvis_expression, $.in_expression, $.is_expression, $.comparison_expression, $.equality_expression, $.conjunction_expression, $.disjunction_expression],
+    [$.dot_qualified_expression, $.multiplicative_expression, $.additive_expression, $.range_expression, $.infix_expression, $.elvis_expression, $.in_expression, $.is_expression, $.comparison_expression, $.equality_expression, $.conjunction_expression, $.disjunction_expression],
+
+    [$._simple_user_type, $._non_call_primary_expression],
+    [$.variable_declaration, $._non_call_primary_expression],
+    [$.value_argument, $._non_call_primary_expression],
+    [$.explicit_delegation, $._primary_expression]
   ],
 
   extras: $ => [
@@ -196,11 +206,9 @@ module.exports = grammar({
   ],
 
   externals: $ => [
-    $._bin_min,
-    $._bin_plus,
-    $._safe_dot,
-    $._elvis,
-    $._dot
+    $._ELVIS,
+    $._external_nl,
+    $.multiline_comment
   ],
 
   supertypes: $ => [
@@ -364,7 +372,7 @@ module.exports = grammar({
       "by",
       repeat($._NL),
       choice(
-        $._primary_expression,
+        $._non_call_primary_expression,
         alias($.simple_call_expression, $.call_expression),
         $.as_expression
       )
@@ -456,7 +464,7 @@ module.exports = grammar({
       optional(field('modifiers', $.modifiers)),
       "fun",
       optional($.type_parameters),
-      optional(seq(repeat($._NL), field('receiver_type', $.receiver_type), repeat($._NL), optional(choice($._dot, '.')))),
+      optional(seq(repeat($._NL), field('receiver_type', $.receiver_type), repeat($._NL), '.')),
       field('name', $.simple_identifier),
       field('parameters', $.function_value_parameters),
       optional(seq(repeat($._NL), ":", repeat($._NL), field('type', $._type))),
@@ -467,7 +475,7 @@ module.exports = grammar({
       optional(field('modifiers', $.modifiers)),
       "fun",
       optional($.type_parameters),
-      optional(seq(repeat($._NL), field('receiver_type', $.receiver_type), repeat($._NL), optional(choice($._dot, '.')))),
+      optional(seq(repeat($._NL), field('receiver_type', $.receiver_type), repeat($._NL), optional('.'))),
       field('name', $.simple_identifier),
       field('parameters', $.function_value_parameters),
       optional(seq(repeat($._NL), ":", repeat($._NL), field('type', $._type))),
@@ -492,7 +500,7 @@ module.exports = grammar({
       optional(field('modifiers', $.modifiers)),
       $.binding_pattern_kind,
       optional(field('type_parameters', $.type_parameters)),
-      optional(seq(field('receiver_type', $.receiver_type), choice($._dot, '.'))),
+      optional(seq(field('receiver_type', $.receiver_type), '.')),
       field('var_decl', choice($.variable_declaration, $.multi_variable_declaration)),
       optional(field('type_constraints', $.type_constraints)),
       optional(seq(
@@ -646,7 +654,7 @@ module.exports = grammar({
     ),
 
     user_type: $ => seq(
-      $._simple_user_type, repeat(seq(choice($._dot, "."), repeat($._NL), $._simple_user_type))
+      $._simple_user_type, repeat(seq(".", repeat($._NL), $._simple_user_type))
     ),
 
     _simple_user_type: $ => seq(
@@ -664,7 +672,7 @@ module.exports = grammar({
     _type_projection_modifier: $ => $.variance_modifier,
 
     function_type: $ => seq(
-      optional(seq($.receiver_type, choice($._dot, "."), repeat($._NL))), 
+      optional(seq($.receiver_type, ".", repeat($._NL))), 
       $.function_type_parameters,
       repeat($._NL),
       "->",
@@ -815,8 +823,9 @@ module.exports = grammar({
     postfix_expression: $ => prec(PREC.POSTFIX, seq(field('expression', $.expression), field('operator', $._postfix_unary_operator))),
 
     dot_qualified_expression: $ => prec(PREC.DOT, seq(
-      field('receiver', choice($.expression)),
-      choice(choice($._dot, "."), $._safe_dot),
+      field('receiver', $.expression),
+      repeat($._external_nl),
+      choice(".", "?."),
       repeat($._NL),
       field('selector', choice(
         $.simple_identifier,
@@ -891,34 +900,36 @@ module.exports = grammar({
       $.in_expression,
     ),
 
-    multiplicative_expression: $ => prec.left(PREC.MULTIPLICATIVE, seq($.expression, $._multiplicative_operator, repeat($._NL), $.expression)),
+    multiplicative_expression: $ => prec.left(PREC.MULTIPLICATIVE, seq($.expression, repeat($._external_nl), $._multiplicative_operator, repeat($._NL), $.expression)),
 
-    additive_expression: $ => prec.left(PREC.ADDITIVE, seq($.expression, $._additive_operator, repeat($._NL), $.expression)),
+    additive_expression: $ => prec.left(PREC.ADDITIVE, seq($.expression, repeat($._external_nl), $._additive_operator, repeat($._NL), $.expression)),
 
-    range_expression: $ => prec.left(PREC.RANGE, seq($.expression, $._range_opeartor, repeat($._NL), $.expression)),
+    range_expression: $ => prec.left(PREC.RANGE, seq($.expression, repeat($._external_nl), $._range_opeartor, repeat($._NL), $.expression)),
 
-    infix_expression: $ => prec.left(PREC.INFIX, seq($.expression, $.simple_identifier, repeat($._NL), $.expression)),
+    infix_expression: $ => prec.left(PREC.INFIX, seq($.expression, repeat($._external_nl), $.simple_identifier, repeat($._NL), $.expression)),
 
-    elvis_expression: $ => prec.left(PREC.ELVIS, seq($.expression, $._elvis, repeat($._NL), $.expression)),
+    elvis_expression: $ => prec.left(PREC.ELVIS, seq($.expression, repeat($._external_nl), $._ELVIS, repeat($._NL), $.expression)),
 
-    in_expression: $ => prec.left(PREC.CHECK, seq($.expression, $._in_operator, repeat($._NL), $.expression)),
+    in_expression: $ => prec.left(PREC.CHECK, seq($.expression, repeat($._external_nl), $._in_operator, repeat($._NL), $.expression)),
 
-    is_expression: $ => prec(PREC.CHECK, seq($.expression, $._is_operator, repeat($._NL), $._type)),
+    is_expression: $ => prec(PREC.CHECK, seq($.expression, repeat($._external_nl), $._is_operator, repeat($._NL), $._type)),
 
-    comparison_expression: $ => prec.left(PREC.COMPARISON, seq($.expression, $._comparison_operator, repeat($._NL), $.expression)),
+    comparison_expression: $ => prec.left(PREC.COMPARISON, seq($.expression, repeat($._external_nl), $._comparison_operator, repeat($._NL), $.expression)),
 
-    equality_expression: $ => prec.left(PREC.EQUALITY, seq($.expression, field('op', $._equality_operator), repeat($._NL), $.expression)),
+    equality_expression: $ => prec.left(PREC.EQUALITY, seq($.expression, repeat($._external_nl), field('op', $._equality_operator), repeat($._NL), $.expression)),
 
     conjunction_expression: $ => prec.left(PREC.CONJUNCTION, seq(
       field('left', $.expression), 
-      $._CONJ,
+      repeat($._external_nl),
+      "&&",
       repeat($._NL),
       field('right', $.expression))
     ),
 
     disjunction_expression: $ => prec.left(PREC.DISJUNCTION, seq(
       field('left', $.expression), 
-      $._DISJ,
+      repeat($._external_nl),
+      "||",
       repeat($._NL),
       field('right', $.expression))
     ),
@@ -964,7 +975,7 @@ module.exports = grammar({
       $.expression
     ),
 
-    _primary_expression: $ => choice(
+    _non_call_primary_expression: $ => choice(
       $.simple_identifier,
       $._literal_constant,
       $.string_literal,
@@ -981,8 +992,12 @@ module.exports = grammar({
       $.if_expression,
       $.annotated_expression,
       $.parenthesized_expression,
-      $.call_expression,
       $.labeled_expression
+    ),
+
+    _primary_expression: $ => choice(
+      $.call_expression,
+      $._non_call_primary_expression
     ),
 
     // we need to give parenthesized expression a lower dymanic precedence to resolve ambiguities like
@@ -1267,7 +1282,7 @@ module.exports = grammar({
 
     _is_operator: $ => choice("is", "!is"),
 
-    _additive_operator: $ => choice($._bin_plus, $._bin_min),
+    _additive_operator: $ => choice("+", "-"),
 
     _multiplicative_operator: $ => choice("*", "/", "%"),
 
@@ -1543,10 +1558,8 @@ module.exports = grammar({
 
     _backtick_identifier: $ => /`[^\r\n`]+`/,
 
-    _CONJ: $ => /\s*&&/,
-    _DISJ: $ => /\s*\|\|/,
     _ws: $ => NON_NL_WHITESPACE,
-    _NL: $ => /\r?\n/,
+    _NL: $ => token(/\n/),
     _semi: $ => choice(";", $._NL),
 
     line_comment: $ => token(seq('//', /[^\r\n]*/)),
@@ -1554,11 +1567,11 @@ module.exports = grammar({
     // We need to consume all the newlines after the commend, otherwise, the comments
     // may be inserted in unwanted places. Comments (and other extra) nodes are inserted
     // after tokens.
-    multiline_comment: $ => seq(
-      token("/*"), 
-      repeat(choice($._NL, /./)), 
-      token("*/"),
-    )
+    // multiline_comment: $ => seq(
+    //   token("/*"), 
+    //   repeat(choice($._NL, /./)), 
+    //   token("*/"),
+    // )
   }
 });
 

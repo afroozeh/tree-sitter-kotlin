@@ -2251,11 +2251,6 @@
     }
   },
   {
-    "type": "multiline_comment",
-    "named": true,
-    "fields": {}
-  },
-  {
     "type": "multiplicative_expression",
     "named": true,
     "fields": {},
@@ -3998,6 +3993,10 @@
     "named": false
   },
   {
+    "type": "&&",
+    "named": false
+  },
+  {
     "type": "'",
     "named": false
   },
@@ -4011,10 +4010,6 @@
   },
   {
     "type": "*",
-    "named": false
-  },
-  {
-    "type": "*/",
     "named": false
   },
   {
@@ -4070,10 +4065,6 @@
     "named": false
   },
   {
-    "type": "/*",
-    "named": false
-  },
-  {
     "type": "/=",
     "named": false
   },
@@ -4119,6 +4110,10 @@
   },
   {
     "type": "?",
+    "named": false
+  },
+  {
+    "type": "?.",
     "named": false
   },
   {
@@ -4342,6 +4337,10 @@
     "named": true
   },
   {
+    "type": "multiline_comment",
+    "named": true
+  },
+  {
     "type": "noinline",
     "named": false
   },
@@ -4499,6 +4498,10 @@
   },
   {
     "type": "{",
+    "named": false
+  },
+  {
+    "type": "||",
     "named": false
   },
   {
