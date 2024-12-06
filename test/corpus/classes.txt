@@ -588,7 +588,7 @@ class Foo private constructor(a: Int) {
 Class without body followed by function modifiers
 ================================================================================
 
-expect class AnimatedImage
+abstract class AnimatedImage
 
 expect fun loadAnimatedImage(path: String): AnimatedImage
 
@@ -597,7 +597,7 @@ expect fun loadAnimatedImage(path: String): AnimatedImage
 (source_file
   (class_declaration
     modifiers: (modifiers
-      (platform_modifier))
+      (inheritance_modifier))
     name: (simple_identifier))
   (function_declaration
     modifiers: (modifiers
@@ -611,6 +611,52 @@ expect fun loadAnimatedImage(path: String): AnimatedImage
             (type_identifier)))))
     type: (user_type
       (type_identifier))))
+
+
+================================================================================
+Class without body followed by class modifiers
+================================================================================
+
+abstract class AnimatedImage
+
+abstract private class Test
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (class_declaration
+    modifiers: (modifiers
+      (inheritance_modifier))
+    name: (simple_identifier))
+  (class_declaration
+    modifiers: (modifiers
+      (inheritance_modifier)
+      (visibility_modifier))
+    name: (simple_identifier)))
+
+
+================================================================================
+Class without body with modifiers on the same line
+================================================================================
+
+abstract class A private class B public abstract class c
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (class_declaration
+    modifiers: (modifiers
+      (inheritance_modifier))
+    name: (simple_identifier))
+  (class_declaration
+    modifiers: (modifiers
+      (visibility_modifier))
+    name: (simple_identifier))
+  (class_declaration
+    modifiers: (modifiers
+      (visibility_modifier)
+      (inheritance_modifier))
+    name: (simple_identifier)))
 
 ================================================================================
 Enum with semicolon after last entry
@@ -990,3 +1036,111 @@ class A
       (inheritance_modifier)
       (visibility_modifier))
     name: (simple_identifier)))
+
+
+================================================================================
+Class with annotated property
+================================================================================
+
+abstract class AbstractNativeMacApplicationPackageAppDirTask : AbstractNativeMacApplicationPackageTask() {
+    @get:InputFile
+    @get:Optional
+    @get:PathSensitive(PathSensitivity.ABSOLUTE)
+    val iconFile: RegularFileProperty = objects.fileProperty()
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (class_declaration
+    modifiers: (modifiers
+      (inheritance_modifier))
+    name: (simple_identifier)
+    (delegation_specifier
+      (constructor_invocation
+        (user_type
+          (type_identifier))
+        (value_arguments)))
+    body: (class_body
+      (property_declaration
+        modifiers: (modifiers
+          (annotation
+            (use_site_target)
+            (user_type
+              (type_identifier)))
+          (annotation
+            (use_site_target)
+            (user_type
+              (type_identifier)))
+          (annotation
+            (use_site_target)
+            (constructor_invocation
+              (user_type
+                (type_identifier))
+              (value_arguments
+                (value_argument
+                  (dot_qualified_expression
+                    receiver: (simple_identifier)
+                    selector: (simple_identifier)))))))
+        (binding_pattern_kind)
+        var_decl: (variable_declaration
+          id: (simple_identifier)
+          type: (user_type
+            (type_identifier)))
+        initializer: (call_expression
+          expression: (dot_qualified_expression
+            receiver: (simple_identifier)
+            selector: (simple_identifier))
+          args: (value_arguments))))))
+
+================================================================================
+Class member with explicit delegate on new line
+================================================================================
+
+class EditorConfigGeneratorTest {
+
+    class TestRule :
+        Rule
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (class_declaration
+    name: (simple_identifier)
+    body: (class_body
+      (class_declaration
+        name: (simple_identifier)
+        (delegation_specifier
+          (user_type
+            (type_identifier)))))))
+
+
+================================================================================
+Enum with annoation and modifiers
+================================================================================
+
+@Suppress("EnumEntryName")
+public enum class CodeStyleValue {
+    android_studio,
+}
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (class_declaration
+    modifiers: (modifiers
+      (annotation
+        (constructor_invocation
+          (user_type
+            (type_identifier))
+          (value_arguments
+            (value_argument
+              (string_literal
+                (string_content))))))
+      (visibility_modifier)
+      (class_modifier))
+    name: (simple_identifier)
+    body: (class_body
+      (enum_entry
+        name: (simple_identifier)))))
