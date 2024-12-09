@@ -70,3 +70,240 @@ a
       (multiline_comment)
       (line_comment)
       selector: (simple_identifier))))
+
+
+================================================================================
+* on separate line 
+================================================================================
+
+a
+* b
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (statement
+    (simple_identifier))
+  (ERROR))
+
+================================================================================
+multiplicative operator on separate line in parentheses
+================================================================================
+
+(a
+* b)
+(a
+/
+b)
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (statement
+    (parenthesized_expression
+      (multiplicative_expression
+        (simple_identifier)
+        (simple_identifier))))
+  (statement
+    (parenthesized_expression
+      (multiplicative_expression
+        (simple_identifier)
+        (simple_identifier)))))      
+
+================================================================================
+Range on separate line in parentheses
+================================================================================
+
+(a
+.. b)
+(a 
+..< b)
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (statement
+    (parenthesized_expression
+      (range_expression
+        (simple_identifier)
+        (simple_identifier))))
+  (statement
+    (parenthesized_expression
+      (range_expression
+        (simple_identifier)
+        (simple_identifier)))))
+
+================================================================================
+Three identifiers on separate lines
+================================================================================
+
+a
+b
+c
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (statement
+    (simple_identifier))
+  (statement
+    (simple_identifier))
+  (statement
+    (simple_identifier)))
+
+================================================================================
+Three identifiers on separate lines inside parentheses
+================================================================================
+
+(a
+b
+c)
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (statement
+    (parenthesized_expression
+      (infix_expression
+        (simple_identifier)
+        (simple_identifier)
+        (simple_identifier)))))
+
+================================================================================
+In operator in parentheses
+================================================================================
+
+(a
+in
+c)
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (statement
+    (parenthesized_expression
+      (in_expression
+        (simple_identifier)
+        (simple_identifier)))))
+
+================================================================================
+!In operator in parentheses
+================================================================================
+
+(a
+!in
+c)
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (statement
+    (parenthesized_expression
+      (in_expression
+        (simple_identifier)
+        (simple_identifier)))))
+
+
+================================================================================
+Comparison operator in parentheses
+================================================================================
+
+(a
+<
+b)
+(a
+>=
+b)
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (statement
+    (parenthesized_expression
+      (comparison_expression
+        (simple_identifier)
+        (simple_identifier))))
+  (statement
+    (parenthesized_expression
+      (comparison_expression
+        (simple_identifier)
+        (simple_identifier)))))
+
+================================================================================
+Equality operator in parentheses
+================================================================================
+
+(a
+==
+b)
+(a
+===
+b)
+(a
+!=
+b)
+(a
+!==
+b)
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (statement
+    (parenthesized_expression
+      (equality_expression
+        (simple_identifier)
+        (simple_identifier))))
+  (statement
+    (parenthesized_expression
+      (equality_expression
+        (simple_identifier)
+        (simple_identifier))))
+  (statement
+    (parenthesized_expression
+      (equality_expression
+        (simple_identifier)
+        (simple_identifier))))
+  (statement
+    (parenthesized_expression
+      (equality_expression
+        (simple_identifier)
+        (simple_identifier)))))
+
+
+================================================================================
+Additive operator in square brackets
+================================================================================
+
+a[1
++ 2]
+
+@Ann([1, 2 
++ 3])
+fun f() {}
+--------------------------------------------------------------------------------
+
+(source_file
+  (statement
+    (index_access_expression
+      expression: (simple_identifier)
+      index: (additive_expression
+        (integer_literal)
+        (integer_literal))))
+  (function_declaration
+    modifiers: (modifiers
+      (annotation
+        (constructor_invocation
+          (user_type
+            (type_identifier))
+          (value_arguments
+            (value_argument
+              (collection_literal
+                (integer_literal)
+                (additive_expression
+                  (integer_literal)
+                  (integer_literal))))))))
+    name: (simple_identifier)
+    parameters: (function_value_parameters)
+    body: (function_body
+      (block))))

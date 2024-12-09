@@ -7,10 +7,71 @@ enum TokenType {
     ELVIS,
     EXTERNAL_NEWLINE,
     MULTILINE_COMMENT,
+    LPAR,
+    RPAR,
+    LCURL,
+    RCURL,
+    LSQR,
+    RSQR,
 };
 
+typedef struct {
+    Array(char) parenthesis;
+} Scanner;
+
+void *tree_sitter_kotlin_external_scanner_create() { 
+    Scanner *scanner = ts_calloc(1, sizeof(Scanner));
+    array_init(&scanner->parenthesis);
+    return scanner;
+ }
+
+void tree_sitter_kotlin_external_scanner_destroy(void *payload) {
+    Scanner *scanner = (Scanner *)payload;
+    array_delete(&scanner->parenthesis);
+    ts_free(scanner);
+}
+
+unsigned tree_sitter_kotlin_external_scanner_serialize(void *payload, char *buffer) { 
+  Scanner *scanner = (Scanner *)payload;
+  int size = scanner->parenthesis.size;
+  if (size > 0) {
+    memcpy(buffer, scanner->parenthesis.contents, size);
+  }
+  return size;
+ }
+
+void tree_sitter_kotlin_external_scanner_deserialize(void *payload, const char *buffer, unsigned length) {
+  Scanner *scanner = (Scanner *)payload;
+  if (length > 0) {
+    array_reserve(&scanner->parenthesis, length);
+    memcpy(scanner->parenthesis.contents, buffer, length);
+    scanner->parenthesis.size = length;
+  } else {
+    array_clear(&scanner->parenthesis);
+  }
+}
+
+static void push(Scanner *scanner, const char c) {
+    array_push(&scanner->parenthesis, c);
+}
+
+static void pop(Scanner *scanner, const char c) {
+    if (scanner->parenthesis.size == 0) {
+        // printf("empty parentheses stack\n");
+        abort();
+    }
+    char popped_char = array_pop(&scanner->parenthesis);
+    if (popped_char != c) {
+        // printf("popped_char: '%c', expected: '%c'\n", popped_char, c);
+        abort();
+    }
+}
+
+static bool is_inside_parentheses(Scanner *scanner) {
+    return scanner->parenthesis.size > 0 && *array_back(&scanner->parenthesis) != '{';
+}
+
 static inline void advance(TSLexer *lexer) { 
-    // printf("advance '%c'\n", lexer->lookahead);
     lexer->advance(lexer, false); 
 }
 
@@ -19,14 +80,6 @@ static inline void skip_whitespace(TSLexer *lexer) {
         advance(lexer);
     }
 }
-
-void *tree_sitter_kotlin_external_scanner_create() { return NULL; }
-
-void tree_sitter_kotlin_external_scanner_destroy(void *payload) {}
-
-unsigned tree_sitter_kotlin_external_scanner_serialize(void *payload, char *buffer) { return 0; }
-
-void tree_sitter_kotlin_external_scanner_deserialize(void *payload, const char *buffer, unsigned length) {}
 
 static bool line_comment_body(TSLexer *lexer) {
     while (lexer->lookahead != '\n') {
@@ -99,7 +152,12 @@ static bool multiline_comment(TSLexer *lexer) {
     return false;
 }
 
+static inline bool is_valid_identifier_char(TSLexer *lexer) {
+    return lexer->lookahead == '_' || iswalnum(lexer->lookahead);
+}
+
 bool tree_sitter_kotlin_external_scanner_scan(void *payload, TSLexer *lexer, const bool *valid_symbols) {
+    Scanner *scanner = (Scanner *)payload;
     if (valid_symbols[MULTILINE_COMMENT]) {
         if (lexer->lookahead == '/') {
             if (multiline_comment(lexer)) {
@@ -107,6 +165,54 @@ bool tree_sitter_kotlin_external_scanner_scan(void *payload, TSLexer *lexer, con
                 return true;
             }
             return false;
+        }
+    }
+    if (valid_symbols[LPAR]) {
+        if (lexer->lookahead == '(') {
+            push(scanner, '(');
+            lexer->result_symbol = LPAR;
+            advance(lexer);
+            return true;
+        }
+    }
+    if (valid_symbols[RPAR]) {
+        if (lexer->lookahead == ')') {
+            pop(scanner, '(');
+            lexer->result_symbol = RPAR;
+            advance(lexer);
+            return true;
+        }
+    }
+    if (valid_symbols[LCURL]) {
+        if (lexer->lookahead == '{') {
+            push(scanner, '{');
+            lexer->result_symbol = LCURL;
+            advance(lexer);
+            return true;
+        }
+    }
+    if (valid_symbols[RCURL]) {
+        if (lexer->lookahead == '}') {
+            pop(scanner, '{');
+            lexer->result_symbol = RCURL;
+            advance(lexer);
+            return true;
+        }
+    }
+    if (valid_symbols[LSQR]) {
+        if (lexer->lookahead == '[') {
+            push(scanner, '[');
+            lexer->result_symbol = LSQR;
+            advance(lexer);
+            return true;
+        }
+    }
+    if (valid_symbols[RSQR]) {
+        if (lexer->lookahead == ']') {
+            pop(scanner, '[');
+            lexer->result_symbol = RSQR;
+            advance(lexer);
+            return true;
         }
     }
     if (valid_symbols[EXTERNAL_NEWLINE] || valid_symbols[ELVIS]) {
@@ -133,7 +239,9 @@ bool tree_sitter_kotlin_external_scanner_scan(void *payload, TSLexer *lexer, con
                                 }
                                 break;
                             default:
-                                return false; 
+                                if (is_inside_parentheses(scanner)) {
+                                        return true;
+                                }
                         }
                     }
                 }
@@ -144,31 +252,91 @@ bool tree_sitter_kotlin_external_scanner_scan(void *payload, TSLexer *lexer, con
                     return true;
                 }
                 if (lookahead_operator(lexer, "+", 1)) {
-                    // Do not match '++' and '+='
-                    if (lexer->lookahead != '+' && lexer->lookahead != '=') {
-                        return true;
+                    if (is_inside_parentheses(scanner)) {
+                        // Do not match '++' and '+='
+                        if (lexer->lookahead != '+' && lexer->lookahead != '=') {
+                            return true;
+                        }
                     }
                 }
                 if (lookahead_operator(lexer, "-", 1)) {
-                    // Do not match '--', '->', and '-='
-                    if (lexer->lookahead != '-' && lexer->lookahead != '>' && lexer->lookahead != '=') {
-                        return true;
+                    if (is_inside_parentheses(scanner)) {
+                        // Do not match '--', '->', and '-='
+                        if (lexer->lookahead != '-' && lexer->lookahead != '>' && lexer->lookahead != '=') {
+                            return true;
+                        }
                     }
                 }
-                if (lookahead_operator(lexer, "?:", 2)) {
-                    return true;
+                if (lookahead_operator(lexer, "*", 1)) {
+                    if (is_inside_parentheses(scanner)) {
+                        // Do not match '*='
+                        if (lexer->lookahead != '=') {
+                            return true;
+                        }
+                    }
                 }
-                if (lookahead_operator(lexer, "?.", 2)) {
-                    return true;
+                if (lookahead_operator(lexer, "?", 1)) {
+                    if (lexer->lookahead == ':' || lexer->lookahead == '.') {
+                        return true;
+                    }
                 }
                 if (lookahead_operator(lexer, ".", 1)) {
-                    // Do not match '.;'
+                    // Do not match '..'
                     if (lexer->lookahead != '.') {
+                        return true;
+                    } else {
+                        // Range operators: '..' '..<'
+                        if (is_inside_parentheses(scanner)) {
+                            return true;
+                        }
+                    }
+                }
+                if (lookahead_operator(lexer, "!", 1)) {
+                    if (is_inside_parentheses(scanner)) {
+                        switch (lexer->lookahead) {
+                            case 'i':
+                                advance(lexer);
+                                if (lexer->lookahead == 'n' || lexer->lookahead == 's') {
+                                    return true;
+                                }
+                            case '=':
+                                return true;
+                        }
+                    }
+                }
+                if (lookahead_operator(lexer, "in", 2)) {
+                    if (!is_valid_identifier_char(lexer)) {
+                        if (is_inside_parentheses(scanner)) {
+                            return true;
+                        }
+                    }
+                }
+                if (lookahead_operator(lexer, "<", 1)) {
+                    if (is_inside_parentheses(scanner)) {
                         return true;
                     }
                 }
-                return false;
-
+                if (lookahead_operator(lexer, ">", 1)) {
+                    if (is_inside_parentheses(scanner)) {
+                        return true;
+                    }
+                }
+                if (lookahead_operator(lexer, "=", 1)) {
+                    if (lexer->lookahead == '=') {
+                        if (is_inside_parentheses(scanner)) {
+                            return true;
+                        }                        
+                    }
+                }
+                // infix operators, if the next character is either `_` or an alphanumeric, corresponding to
+                // the beginning of an identifier
+                if (is_valid_identifier_char(lexer)) {
+                    if (is_inside_parentheses(scanner)) {
+                        return true;
+                    }
+                }
+                break;
+                
             case '?':
                 advance(lexer);
                 if (lexer->lookahead != ':') {

@@ -417,6 +417,10 @@
           {
             "type": "simple_identifier",
             "named": true
+          },
+          {
+            "type": "this_expression",
+            "named": true
           }
         ]
       },
@@ -4001,14 +4005,6 @@
     "named": false
   },
   {
-    "type": "(",
-    "named": false
-  },
-  {
-    "type": ")",
-    "named": false
-  },
-  {
     "type": "*",
     "named": false
   },
@@ -4122,14 +4118,6 @@
   },
   {
     "type": "L",
-    "named": false
-  },
-  {
-    "type": "[",
-    "named": false
-  },
-  {
-    "type": "]",
     "named": false
   },
   {
@@ -4494,10 +4482,6 @@
   },
   {
     "type": "while",
-    "named": false
-  },
-  {
-    "type": "{",
     "named": false
   },
   {
