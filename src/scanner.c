@@ -13,6 +13,7 @@ enum TokenType {
     RCURL,
     LSQR,
     RSQR,
+    DOLLAR_CURL, // ${
 };
 
 typedef struct {
@@ -55,16 +56,17 @@ static void push(Scanner *scanner, const char c) {
     array_push(&scanner->parenthesis, c);
 }
 
-static void pop(Scanner *scanner, const char c) {
+static bool pop(TSLexer *lexer, Scanner *scanner, const char c) {
     if (scanner->parenthesis.size == 0) {
-        // printf("empty parentheses stack\n");
-        abort();
+        lexer->log(lexer, "empty parentheses stack\n");
+        return false;
     }
     char popped_char = array_pop(&scanner->parenthesis);
     if (popped_char != c) {
-        // printf("popped_char: '%c', expected: '%c'\n", popped_char, c);
-        abort();
+        lexer->log(lexer, "Unexpected top of stack\n");
+        return false;
     }
+    return true;
 }
 
 static bool is_inside_parentheses(Scanner *scanner) {
@@ -75,10 +77,8 @@ static inline void advance(TSLexer *lexer) {
     lexer->advance(lexer, false); 
 }
 
-static inline void skip_whitespace(TSLexer *lexer) {
-    while (iswspace(lexer->lookahead)) {
-        advance(lexer);
-    }
+static inline void advance_and_skip(TSLexer *lexer) { 
+    lexer->advance(lexer, true); 
 }
 
 static bool line_comment_body(TSLexer *lexer) {
@@ -152,12 +152,15 @@ static bool multiline_comment(TSLexer *lexer) {
     return false;
 }
 
-static inline bool is_valid_identifier_char(TSLexer *lexer) {
+static inline bool is_lookahead_valid_identifier_char(TSLexer *lexer) {
     return lexer->lookahead == '_' || iswalnum(lexer->lookahead);
 }
 
 bool tree_sitter_kotlin_external_scanner_scan(void *payload, TSLexer *lexer, const bool *valid_symbols) {
     Scanner *scanner = (Scanner *)payload;
+    while (iswspace(lexer->lookahead) && lexer->lookahead != '\n') {
+        advance_and_skip(lexer);
+    }
     if (valid_symbols[MULTILINE_COMMENT]) {
         if (lexer->lookahead == '/') {
             if (multiline_comment(lexer)) {
@@ -176,11 +179,14 @@ bool tree_sitter_kotlin_external_scanner_scan(void *payload, TSLexer *lexer, con
         }
     }
     if (valid_symbols[RPAR]) {
-        if (lexer->lookahead == ')') {
-            pop(scanner, '(');
-            lexer->result_symbol = RPAR;
-            advance(lexer);
-            return true;
+        if (scanner->parenthesis.size > 0) {
+            if (lexer->lookahead == ')') {
+                if (pop(lexer, scanner, '(')) {
+                    lexer->result_symbol = RPAR;
+                    advance(lexer);
+                    return true;
+                }
+            }
         }
     }
     if (valid_symbols[LCURL]) {
@@ -191,12 +197,26 @@ bool tree_sitter_kotlin_external_scanner_scan(void *payload, TSLexer *lexer, con
             return true;
         }
     }
-    if (valid_symbols[RCURL]) {
-        if (lexer->lookahead == '}') {
-            pop(scanner, '{');
-            lexer->result_symbol = RCURL;
+    if (valid_symbols[DOLLAR_CURL]) {
+        if (lexer->lookahead == '$') {
             advance(lexer);
-            return true;
+            if (lexer->lookahead == '{') {
+                push(scanner, '{');
+                lexer->result_symbol = DOLLAR_CURL;
+                advance(lexer);
+                return true;
+            }
+        }
+    }
+    if (valid_symbols[RCURL]) {
+        if (scanner->parenthesis.size > 0) {
+            if (lexer->lookahead == '}') {
+                if (pop(lexer, scanner, '{')) {
+                    lexer->result_symbol = RCURL;
+                    advance(lexer);
+                    return true;
+                }
+            }
         }
     }
     if (valid_symbols[LSQR]) {
@@ -209,10 +229,11 @@ bool tree_sitter_kotlin_external_scanner_scan(void *payload, TSLexer *lexer, con
     }
     if (valid_symbols[RSQR]) {
         if (lexer->lookahead == ']') {
-            pop(scanner, '[');
-            lexer->result_symbol = RSQR;
-            advance(lexer);
-            return true;
+            if (pop(lexer, scanner, '[')) {
+                lexer->result_symbol = RSQR;
+                advance(lexer);
+                return true;
+            }
         }
     }
     if (valid_symbols[EXTERNAL_NEWLINE] || valid_symbols[ELVIS]) {
@@ -224,7 +245,9 @@ bool tree_sitter_kotlin_external_scanner_scan(void *payload, TSLexer *lexer, con
                 lexer->result_symbol = EXTERNAL_NEWLINE;
                 lexer->mark_end(lexer);
                 while (iswspace(lexer->lookahead) || lexer->lookahead == '/') {
-                    skip_whitespace(lexer);
+                    while (iswspace(lexer->lookahead)) {
+                        advance(lexer);
+                    }
                     if (lexer->lookahead == '/') {
                         advance(lexer);
                         switch (lexer->lookahead) {
@@ -305,10 +328,15 @@ bool tree_sitter_kotlin_external_scanner_scan(void *payload, TSLexer *lexer, con
                     }
                 }
                 if (lookahead_operator(lexer, "in", 2)) {
-                    if (!is_valid_identifier_char(lexer)) {
+                    if (!is_lookahead_valid_identifier_char(lexer)) {
                         if (is_inside_parentheses(scanner)) {
                             return true;
                         }
+                    }
+                }
+                if (lookahead_operator(lexer, "as", 2)) {
+                    if (!is_lookahead_valid_identifier_char(lexer)) {
+                        return true;
                     }
                 }
                 if (lookahead_operator(lexer, "<", 1)) {
@@ -330,7 +358,7 @@ bool tree_sitter_kotlin_external_scanner_scan(void *payload, TSLexer *lexer, con
                 }
                 // infix operators, if the next character is either `_` or an alphanumeric, corresponding to
                 // the beginning of an identifier
-                if (is_valid_identifier_char(lexer)) {
+                if (is_lookahead_valid_identifier_char(lexer)) {
                     if (is_inside_parentheses(scanner)) {
                         return true;
                     }
