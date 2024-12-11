@@ -5568,11 +5568,32 @@
               {
                 "type": "ALIAS",
                 "content": {
-                  "type": "TOKEN",
-                  "content": {
-                    "type": "PATTERN",
-                    "value": "\\$[^\\p{L}_{\"]+"
-                  }
+                  "type": "CHOICE",
+                  "members": [
+                    {
+                      "type": "TOKEN",
+                      "content": {
+                        "type": "PATTERN",
+                        "value": "\\$[^\\p{L}_{\"]"
+                      }
+                    },
+                    {
+                      "type": "TOKEN",
+                      "content": {
+                        "type": "SEQ",
+                        "members": [
+                          {
+                            "type": "STRING",
+                            "value": "$"
+                          },
+                          {
+                            "type": "PATTERN",
+                            "value": "\\\\[tbrn'\"\\\\$]"
+                          }
+                        ]
+                      }
+                    }
+                  ]
                 },
                 "named": true,
                 "value": "string_content"
@@ -5645,11 +5666,8 @@
               }
             },
             {
-              "type": "TOKEN",
-              "content": {
-                "type": "PATTERN",
-                "value": "\\\\[tbrn'\"\\\\$]"
-              }
+              "type": "PATTERN",
+              "value": "\\\\[tbrn'\"\\\\$]"
             }
           ]
         }
@@ -5682,11 +5700,32 @@
                 {
                   "type": "ALIAS",
                   "content": {
-                    "type": "TOKEN",
-                    "content": {
-                      "type": "PATTERN",
-                      "value": "\\$[^\\p{L}_{\"]+"
-                    }
+                    "type": "CHOICE",
+                    "members": [
+                      {
+                        "type": "TOKEN",
+                        "content": {
+                          "type": "PATTERN",
+                          "value": "\\$[^\\p{L}_{\"]"
+                        }
+                      },
+                      {
+                        "type": "TOKEN",
+                        "content": {
+                          "type": "SEQ",
+                          "members": [
+                            {
+                              "type": "STRING",
+                              "value": "$"
+                            },
+                            {
+                              "type": "PATTERN",
+                              "value": "\\\\[tbrn'\"\\\\$]"
+                            }
+                          ]
+                        }
+                      }
+                    ]
                   },
                   "named": true,
                   "value": "string_content"
@@ -8414,43 +8453,52 @@
     "bin_literal": {
       "type": "TOKEN",
       "content": {
-        "type": "SEQ",
+        "type": "CHOICE",
         "members": [
           {
-            "type": "STRING",
-            "value": "0"
-          },
-          {
-            "type": "PATTERN",
-            "value": "[bB]"
-          },
-          {
-            "type": "TOKEN",
-            "content": {
-              "type": "SEQ",
-              "members": [
-                {
+            "type": "SEQ",
+            "members": [
+              {
+                "type": "STRING",
+                "value": "0"
+              },
+              {
+                "type": "PATTERN",
+                "value": "[bB]"
+              },
+              {
+                "type": "PATTERN",
+                "value": "[01]"
+              },
+              {
+                "type": "REPEAT",
+                "content": {
                   "type": "PATTERN",
-                  "value": "[01]"
-                },
-                {
-                  "type": "REPEAT",
-                  "content": {
-                    "type": "SEQ",
-                    "members": [
-                      {
-                        "type": "PATTERN",
-                        "value": "_+"
-                      },
-                      {
-                        "type": "PATTERN",
-                        "value": "[01]"
-                      }
-                    ]
-                  }
+                  "value": "[01_]"
                 }
-              ]
-            }
+              },
+              {
+                "type": "PATTERN",
+                "value": "[01]"
+              }
+            ]
+          },
+          {
+            "type": "SEQ",
+            "members": [
+              {
+                "type": "STRING",
+                "value": "0"
+              },
+              {
+                "type": "PATTERN",
+                "value": "[bB]"
+              },
+              {
+                "type": "PATTERN",
+                "value": "[01]"
+              }
+            ]
           }
         ]
       }
@@ -8568,11 +8616,8 @@
             }
           },
           {
-            "type": "TOKEN",
-            "content": {
-              "type": "PATTERN",
-              "value": "\\\\[tbrn'\"\\\\$]"
-            }
+            "type": "PATTERN",
+            "value": "\\\\[tbrn'\"\\\\$]"
           }
         ]
       }
@@ -8846,15 +8891,6 @@
       "comparison_expression"
     ],
     [
-      "assignment",
-      "annotated_expression",
-      "modifiers"
-    ],
-    [
-      "assignment",
-      "annotated_expression"
-    ],
-    [
       "annotated_expression"
     ],
     [
@@ -8869,17 +8905,6 @@
     ],
     [
       "when_expression"
-    ],
-    [
-      "variable_declaration",
-      "assignment",
-      "annotated_expression",
-      "modifiers"
-    ],
-    [
-      "variable_declaration",
-      "assignment",
-      "annotated_expression"
     ],
     [
       "variable_declaration",
@@ -8959,50 +8984,6 @@
     [
       "setter",
       "_soft_keywords"
-    ],
-    [
-      "dot_qualified_expression",
-      "labeled_expression",
-      "multiplicative_expression",
-      "additive_expression",
-      "range_expression",
-      "infix_expression",
-      "elvis_expression",
-      "in_expression",
-      "is_expression",
-      "comparison_expression",
-      "equality_expression",
-      "conjunction_expression",
-      "disjunction_expression"
-    ],
-    [
-      "dot_qualified_expression",
-      "prefix_expression",
-      "multiplicative_expression",
-      "additive_expression",
-      "range_expression",
-      "infix_expression",
-      "elvis_expression",
-      "in_expression",
-      "is_expression",
-      "comparison_expression",
-      "equality_expression",
-      "conjunction_expression",
-      "disjunction_expression"
-    ],
-    [
-      "dot_qualified_expression",
-      "multiplicative_expression",
-      "additive_expression",
-      "range_expression",
-      "infix_expression",
-      "elvis_expression",
-      "in_expression",
-      "is_expression",
-      "comparison_expression",
-      "equality_expression",
-      "conjunction_expression",
-      "disjunction_expression"
     ],
     [
       "dot_qualified_expression",

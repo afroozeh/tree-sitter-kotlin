@@ -133,6 +133,8 @@ More string interpolation
 "$ $ $"
 "\$foo"
 "\$"
+"!@#$%^&*()\""
+"$\""
 
 --------------------------------------------------------------------------------
 
@@ -140,19 +142,30 @@ More string interpolation
   (statement
     (string_literal
       (string_content)))
-  (statement    
+  (statement
     (string_literal
       (string_content)))
-  (statement    
+  (statement
     (string_literal
+      (string_content)
+      (string_content)
       (string_content)))
-  (statement    
+  (statement
     (string_literal
       (string_content)
       (string_content)))
-  (statement    
+  (statement
     (string_literal
-      (string_content))))
+      (string_content)))
+  (statement
+    (string_literal
+      (string_content)
+      (string_content)
+      (string_content)
+      (string_content)))
+  (statement
+    (string_literal
+      (string_content))))     
 
 ================================================================================
 Integer literals
@@ -262,3 +275,21 @@ null
 (source_file
   (statement
     (null_literal)))
+
+================================================================================
+Binary literal
+================================================================================
+
+0b0010_0000
+0b1
+0b0_010_000_0
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (statement
+    (bin_literal))
+  (statement
+    (bin_literal))
+  (statement
+    (bin_literal)))

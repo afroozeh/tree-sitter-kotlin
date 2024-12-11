@@ -50,7 +50,8 @@ const PREC = {
 };
 const DEC_DIGITS = token(sep1(/[0-9]+/, /_+/));
 const HEX_DIGITS = token(sep1(/[0-9a-fA-F]+/, /_+/));
-const BIN_DIGITS = token(sep1(/[01]/, /_+/));
+const BIN_DIGIT = /[01]/;
+const BIN_DIGIT_OR_SEPARATOR = /[01_]/;
 const REAL_EXPONENT = token(seq(/[eE]/, optional(/[+-]/), DEC_DIGITS));
 
 const uni_character_literal = token(seq(
@@ -58,11 +59,14 @@ const uni_character_literal = token(seq(
   /[0-9a-fA-F]{4}/
 ));
 
-const escaped_identifier = token(/\\[tbrn'"\\$]/);
+const escaped_identifier = /\\[tbrn'"\\$]/;
 
 // Here, we should only match the '$' character if it's not followed by an alpha character
 // If it is, it should be matched as part of the _interpolation rule.
-const DOLLAR_IN_STRING_CONTENT = token(/\$[^\p{L}_{"]+/);
+const DOLLAR_IN_STRING_CONTENT = choice(
+  token(/\$[^\p{L}_{"]/),
+  token(seq("$", escaped_identifier))
+);
 
 const QUOTE_IN_MULTI_LINE_STRING_CONTENT = token(/"[^"]|""[^"]/);
 
@@ -146,15 +150,11 @@ module.exports = grammar({
     [$.annotated_expression, $.value_argument],
     [$._annotated_delegation_specifier, $._type_modifier],
     [$.call_expression, $.labeled_expression, $.comparison_expression],
-    [$.assignment, $.annotated_expression, $.modifiers],
-    [$.assignment, $.annotated_expression],
     [$.annotated_expression],
     [$.class_body, $.enum_class_body],
     [$._when_entry],
     [$.when_entries],
     [$.when_expression],
-    [$.variable_declaration, $.assignment, $.annotated_expression, $.modifiers],
-    [$.variable_declaration, $.assignment, $.annotated_expression],
     [$.variable_declaration, $._type_modifier],
     [$.variable_declaration, $.annotated_expression],
     [$.lambda_parameters],
@@ -177,9 +177,6 @@ module.exports = grammar({
     [$.getter, $._soft_keywords],
     [$.setter, $._soft_keywords],
 
-    [$.dot_qualified_expression, $.labeled_expression, $.multiplicative_expression, $.additive_expression, $.range_expression, $.infix_expression, $.elvis_expression, $.in_expression, $.is_expression, $.comparison_expression, $.equality_expression, $.conjunction_expression, $.disjunction_expression],
-    [$.dot_qualified_expression, $.prefix_expression, $.multiplicative_expression, $.additive_expression, $.range_expression, $.infix_expression, $.elvis_expression, $.in_expression, $.is_expression, $.comparison_expression, $.equality_expression, $.conjunction_expression, $.disjunction_expression],
-    [$.dot_qualified_expression, $.multiplicative_expression, $.additive_expression, $.range_expression, $.infix_expression, $.elvis_expression, $.in_expression, $.is_expression, $.comparison_expression, $.equality_expression, $.conjunction_expression, $.disjunction_expression],
     [$.dot_qualified_expression, $.labeled_expression, $.as_expression, $.multiplicative_expression, $.additive_expression, $.range_expression, $.infix_expression, $.elvis_expression, $.in_expression, $.is_expression, $.comparison_expression, $.equality_expression, $.conjunction_expression, $.disjunction_expression],
     [$.dot_qualified_expression, $.prefix_expression, $.as_expression, $.multiplicative_expression, $.additive_expression, $.range_expression, $.infix_expression, $.elvis_expression, $.in_expression, $.is_expression, $.comparison_expression, $.equality_expression, $.conjunction_expression, $.disjunction_expression],
     [$.dot_qualified_expression, $.as_expression, $.multiplicative_expression, $.additive_expression, $.range_expression, $.infix_expression, $.elvis_expression, $.in_expression, $.is_expression, $.comparison_expression, $.equality_expression, $.conjunction_expression, $.disjunction_expression],
@@ -1518,7 +1515,10 @@ module.exports = grammar({
 
     hex_literal: $ => token(seq("0", /[xX]/, HEX_DIGITS)),
 
-    bin_literal: $ => token(seq("0", /[bB]/, BIN_DIGITS)),
+    bin_literal: $ => token(choice(
+      seq("0", /[bB]/, BIN_DIGIT, repeat(BIN_DIGIT_OR_SEPARATOR), BIN_DIGIT),
+      seq("0", /[bB]/, BIN_DIGIT)
+    )),
 
     unsigned_literal: $ => seq(
       choice($.integer_literal, $.hex_literal, $.bin_literal),
