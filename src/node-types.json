@@ -997,20 +997,27 @@
   {
     "type": "constructor_invocation",
     "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": true,
-      "types": [
-        {
-          "type": "user_type",
-          "named": true
-        },
-        {
-          "type": "value_arguments",
-          "named": true
-        }
-      ]
+    "fields": {
+      "args": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "value_arguments",
+            "named": true
+          }
+        ]
+      },
+      "type": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "user_type",
+            "named": true
+          }
+        ]
+      }
     }
   },
   {
@@ -3720,17 +3727,34 @@
   {
     "type": "value_argument",
     "named": true,
-    "fields": {},
+    "fields": {
+      "expression": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "expression",
+            "named": true
+          }
+        ]
+      },
+      "name": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "simple_identifier",
+            "named": true
+          }
+        ]
+      }
+    },
     "children": {
-      "multiple": true,
-      "required": true,
+      "multiple": false,
+      "required": false,
       "types": [
         {
           "type": "annotation",
-          "named": true
-        },
-        {
-          "type": "expression",
           "named": true
         }
       ]

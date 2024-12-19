@@ -166,7 +166,7 @@ f(1 //line comment
       expression: (simple_identifier)
       args: (value_arguments
         (value_argument
-          (additive_expression
+          expression: (additive_expression
             (integer_literal)
             (line_comment)
             (multiline_comment)
@@ -202,11 +202,11 @@ public data class PluginName(
             (type_identifier)))))
     (delegation_specifier
       (constructor_invocation
-        (user_type
+        type: (user_type
           (type_identifier))
-        (value_arguments
+        args: (value_arguments
           (value_argument
-            (simple_identifier)))))
+            expression: (simple_identifier)))))
     body: (class_body)))
 
 ================================================================================

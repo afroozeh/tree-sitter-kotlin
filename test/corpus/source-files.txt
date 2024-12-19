@@ -11,11 +11,11 @@ val x = 4
 (source_file
   (file_annotation
     (constructor_invocation
-      (user_type
+      type: (user_type
         (type_identifier))
-      (value_arguments
+      args: (value_arguments
         (value_argument
-          (string_literal (string_content))))))
+          expression: (string_literal (string_content))))))
   (property_declaration
     (binding_pattern_kind)
     var_decl: (variable_declaration
@@ -38,18 +38,18 @@ Multiple file annotations
       (type_identifier)))
   (file_annotation
     (constructor_invocation
-      (user_type
+     type: (user_type
         (type_identifier))
-      (value_arguments
+      args: (value_arguments
         (value_argument
-          (string_literal (string_content))))))
+         expression: (string_literal (string_content))))))
   (file_annotation
     (constructor_invocation
-      (user_type
+      type: (user_type
         (type_identifier))
-      (value_arguments
+      args: (value_arguments
         (value_argument
-          (callable_reference
+          expression: (callable_reference
             (user_type
               (type_identifier))))))))
 

@@ -193,7 +193,10 @@ module.exports = grammar({
     [$._loop_statement, $.assignment, $.annotated_expression, $.modifiers],
     [$._loop_statement, $.assignment, $.annotated_expression],
     [$.variable_declaration, $._loop_statement, $.assignment, $.annotated_expression, $.modifiers],
-    [$.variable_declaration, $._loop_statement, $.assignment, $.annotated_expression]
+    [$.variable_declaration, $._loop_statement, $.assignment, $.annotated_expression],
+
+    [$.delegation_specifier, $.constructor_invocation],
+    [$.delegation_specifier, $.explicit_delegation]
   ],
 
   extras: $ => [
@@ -370,16 +373,17 @@ module.exports = grammar({
 
     _annotated_delegation_specifier: $ => prec.left(seq(repeat($._annotation), repeat($._NL), $.delegation_specifier, repeat($._NL))),
 
-    delegation_specifier: $ => prec.right(choice(
+    delegation_specifier: $ => choice(
       $.constructor_invocation,
       $.explicit_delegation,
       $.user_type,
       $.function_type
-    )),
+    ),
 
     constructor_invocation: $ => seq(
-      $.user_type,
-      $.value_arguments
+      field("type", $.user_type),
+      repeat($._NL),
+      field("args", $.value_arguments)
     ),
 
     explicit_delegation: $ => seq(
@@ -675,7 +679,6 @@ module.exports = grammar({
       $._type
     ),
 
-    // A higher-than-default precedence resolves the ambiguity with 'parenthesized_type'
     function_type_parameters: $ => seq(
       "(",
       repeat($._NL),
@@ -684,7 +687,7 @@ module.exports = grammar({
       ")"
     ),
 
-    parenthesized_type: $ => seq("(", repeat($._NL), $._type, ")"),
+    parenthesized_type: $ => seq("(", repeat($._NL), $._type, repeat($._NL), ")"),
 
     parenthesized_user_type: $ => seq(
       "(",
@@ -965,10 +968,10 @@ module.exports = grammar({
     value_argument: $ => seq(
       optional($._annotation),
       repeat($._NL),
-      optional(seq($.simple_identifier, repeat($._NL), "=", repeat($._NL))),
+      optional(seq(field("name", $.simple_identifier), repeat($._NL), "=", repeat($._NL))),
       optional("*"),
       repeat($._NL),
-      $.expression
+      field("expression", $.expression)
     ),
 
     _non_call_primary_expression: $ => choice(
@@ -1558,20 +1561,10 @@ module.exports = grammar({
 
     _backtick_identifier: $ => /`[^\r\n`]+`/,
 
-    _ws: $ => NON_NL_WHITESPACE,
     _NL: $ => /\n/,
     _semi: $ => choice(";", $._NL),
 
     line_comment: $ => token(seq("//", /[^\r\n]*/)),
-
-    // We need to consume all the newlines after the commend, otherwise, the comments
-    // may be inserted in unwanted places. Comments (and other extra) nodes are inserted
-    // after tokens.
-    // multiline_comment: $ => seq(
-    //   token("/*"), 
-    //   repeat(choice($._NL, /./)), 
-    //   token("*/"),
-    // )
   }
 });
 
