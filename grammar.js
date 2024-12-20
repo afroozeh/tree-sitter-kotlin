@@ -1267,9 +1267,12 @@ module.exports = grammar({
     ),
 
     callable_reference: $ => prec(PREC.DOT, seq(
-      optional(choice(seq($.user_type, optional(choice("?", "!!"))), $.this_expression)),
+      optional(choice(
+        seq(field("receiver", $.user_type), optional(choice("?", "!!"))), 
+        field("receiver", $.this_expression)
+      )),
       "::",
-      choice($.simple_identifier, "class")
+      choice(field("name", $.simple_identifier), "class")
     )),
 
     _assignment_operator: $ => choice("=", "+=", "-=", "*=", "/=", "%="),
