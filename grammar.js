@@ -25,27 +25,7 @@
 // Using an adapted version of https://kotlinlang.org/docs/reference/grammar.html
 
 const PREC = {
-  INDEX: 18,
-  CALL: 17,
-  DOT: 16,
-  POSTFIX: 16,
-  PREFIX: 15,
-  LABEL: 14,
-  AS: 13,
-  MULTIPLICATIVE: 12,
-  ADDITIVE: 11,
-  RANGE: 10,
-  INFIX: 9,
-  ELVIS: 8,
-  CHECK: 7,
-  COMPARISON: 6,
-  EQUALITY: 5,
-  CONJUNCTION: 4,
-  DISJUNCTION: 3,
   GENERIC: 3,
-  SPREAD: 2,
-  BLOCK: 1,
-  ARGUMENTS: 1,
   STRING_CONTENT: 1,
 };
 const DEC_DIGITS = token(sep1(/[0-9]+/, /_+/));
@@ -150,7 +130,6 @@ module.exports = grammar({
     [$.annotated_expression, $.value_argument],
     [$._annotated_delegation_specifier, $._type_modifier],
     [$.call_expression, $.labeled_expression, $.comparison_expression],
-    [$.annotated_expression],
     [$.class_body, $.enum_class_body],
     [$._when_entry],
     [$.when_entries],
@@ -183,6 +162,8 @@ module.exports = grammar({
 
     [$._simple_user_type, $._non_call_primary_expression],
     [$.variable_declaration, $._non_call_primary_expression],
+    // In `f(a)` it's not clear if a should be reduced to an expression and be the argument value
+    // or the name of the argument.
     [$.value_argument, $._non_call_primary_expression],
     [$.explicit_delegation, $._primary_expression],
 
@@ -190,17 +171,13 @@ module.exports = grammar({
     [$._top_level_statements],
     [$.statements, $._semi],
 
-    [$._loop_statement, $.assignment, $.annotated_expression, $.modifiers],
-    [$._loop_statement, $.assignment, $.annotated_expression],
-    [$.variable_declaration, $._loop_statement, $.assignment, $.annotated_expression, $.modifiers],
-    [$.variable_declaration, $._loop_statement, $.assignment, $.annotated_expression],
-
     [$.delegation_specifier, $.constructor_invocation],
     [$.delegation_specifier, $.explicit_delegation],
 
-    [$._loop_statement, $.assignment, $.labeled_expression],
-    [$.labeled_expression],
-    [$.simple_call_expression, $._call_arguments]
+    [$.simple_call_expression, $._call_arguments],
+    [$.annotated_expression, $.modifiers],
+    [$.variable_declaration, $.annotated_expression, $.modifiers],
+    [$._non_call_primary_expression, $.callable_reference],
   ],
 
   precedences: $ => [
@@ -229,7 +206,7 @@ module.exports = grammar({
       "property_declaration",
       "property_delegate",
       "top_level"
-     ]
+     ],
   ],
 
   extras: $ => [
@@ -312,11 +289,7 @@ module.exports = grammar({
       repeat($._semi)
     ),
 
-    _top_level_statement: $ => prec("top_level", choice(
-      $.assignment,
-      $._loop_statement,
-      $.expression
-    )), 
+    _top_level_statement: $ => prec("top_level", $.expression), 
 
     type_alias: $ => prec.right(seq(
       optional(field("modifiers", $.modifiers)),
@@ -740,8 +713,6 @@ module.exports = grammar({
 
     statement: $ => choice(
       $._declaration,
-      $.assignment,
-      $._loop_statement,
       $.expression
     ),
 
@@ -757,13 +728,11 @@ module.exports = grammar({
       "}"
     ),
 
-    _loop_statement: $ => seq(
-      repeat(choice($.label, $._annotation)),
-      choice(
-        $.for_statement,
-        $.while_statement,
-        $.do_while_statement
-    )),
+    _loop_statement: $ => choice(
+      $.for_statement,
+      $.while_statement,
+      $.do_while_statement
+    ),
 
     for_statement: $ => prec.right(seq(
       "for",
@@ -809,21 +778,20 @@ module.exports = grammar({
       ")",
     )),
 
-    assignment: $ => prec("assignment", seq(
-      repeat(choice($.label, $._annotation)),
-      field("left", $._directly_assignable_expression),
+    assignment: $ => prec.left("assignment", seq(
+      field("left", $.expression),
       field("op", $._assignment_operator),
       repeat($._NL),
       field("right", $.expression)
     )),
 
-    _directly_assignable_expression: $ => choice(
-      $.dot_qualified_expression,
-      $.index_access_expression,
-      $.simple_identifier,
-      $.postfix_expression,
-      $.this_expression
-    ),
+    // _directly_assignable_expression: $ => choice(
+    //   $.dot_qualified_expression,
+    //   $.index_access_expression,
+    //   $.simple_identifier,
+    //   $.postfix_expression,
+    //   $.this_expression
+    // ),
 
     // ==========
     // Expressions
@@ -833,7 +801,9 @@ module.exports = grammar({
       $._unary_expression,
       $._binary_expression,
       $._primary_expression,
-      $.jump_expression
+      $.jump_expression,
+      $.assignment,
+      $._loop_statement
     ),
 
     // Unary expressions
@@ -1027,7 +997,8 @@ module.exports = grammar({
     value_argument: $ => seq(
       optional($._annotation),
       repeat($._NL),
-      optional(seq(field("name", $.simple_identifier), repeat($._NL), "=", repeat($._NL))),
+      // dynamic precedece so that tree-sitter doesn't parse f(a = b) as an assignment...
+      optional(seq(field("name", $.simple_identifier), repeat($._NL), prec.dynamic(10, "="), repeat($._NL))),
       optional("*"),
       repeat($._NL),
       field("expression", $.expression)
@@ -1210,12 +1181,10 @@ module.exports = grammar({
       ")",
     ),
 
-    _control_body_structure: $ => prec("control", choice(
-      $.expression, 
-      $.assignment, 
+    _control_body_structure: $ => choice(
+      prec("control", $.expression), 
       $.block,
-      $._loop_statement,
-    )),
+    ),
 
     when_subject: $ => seq(
       "(",
@@ -1325,14 +1294,14 @@ module.exports = grammar({
       seq("break@", $._lexical_identifier)
     ),
 
-    callable_reference: $ => prec(PREC.DOT, seq(
+    callable_reference: $ => seq(
       optional(choice(
         seq(field("receiver", $.user_type), optional(choice("?", "!!"))), 
         field("receiver", $.this_expression)
       )),
       "::",
       choice(field("name", $.simple_identifier), "class")
-    )),
+    ),
 
     _assignment_operator: $ => choice("=", "+=", "-=", "*=", "/=", "%="),
 
