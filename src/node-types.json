@@ -497,6 +497,11 @@
     "fields": {}
   },
   {
+    "type": "by",
+    "named": true,
+    "fields": {}
+  },
+  {
     "type": "call_expression",
     "named": true,
     "fields": {
@@ -2674,6 +2679,26 @@
     "type": "property_declaration",
     "named": true,
     "fields": {
+      "binding_pattern": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "binding_pattern_kind",
+            "named": true
+          }
+        ]
+      },
+      "delegate": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "property_delegate",
+            "named": true
+          }
+        ]
+      },
       "initializer": {
         "multiple": false,
         "required": false,
@@ -2741,18 +2766,10 @@
     },
     "children": {
       "multiple": true,
-      "required": true,
+      "required": false,
       "types": [
         {
-          "type": "binding_pattern_kind",
-          "named": true
-        },
-        {
           "type": "getter",
-          "named": true
-        },
-        {
-          "type": "property_delegate",
           "named": true
         },
         {
@@ -2765,7 +2782,18 @@
   {
     "type": "property_delegate",
     "named": true,
-    "fields": {},
+    "fields": {
+      "by": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "by",
+            "named": true
+          }
+        ]
+      }
+    },
     "children": {
       "multiple": false,
       "required": true,

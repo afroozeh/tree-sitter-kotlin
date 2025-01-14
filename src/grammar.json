@@ -2219,8 +2219,12 @@
             ]
           },
           {
-            "type": "SYMBOL",
-            "name": "binding_pattern_kind"
+            "type": "FIELD",
+            "name": "binding_pattern",
+            "content": {
+              "type": "SYMBOL",
+              "name": "binding_pattern_kind"
+            }
           },
           {
             "type": "CHOICE",
@@ -2337,8 +2341,12 @@
                         ]
                       },
                       {
-                        "type": "SYMBOL",
-                        "name": "property_delegate"
+                        "type": "FIELD",
+                        "name": "delegate",
+                        "content": {
+                          "type": "SYMBOL",
+                          "name": "property_delegate"
+                        }
                       }
                     ]
                   }
@@ -2402,8 +2410,12 @@
         "type": "SEQ",
         "members": [
           {
-            "type": "STRING",
-            "value": "by"
+            "type": "FIELD",
+            "name": "by",
+            "content": {
+              "type": "SYMBOL",
+              "name": "by"
+            }
           },
           {
             "type": "REPEAT",
@@ -2418,6 +2430,10 @@
           }
         ]
       }
+    },
+    "by": {
+      "type": "STRING",
+      "value": "by"
     },
     "_setter_getter": {
       "type": "CHOICE",

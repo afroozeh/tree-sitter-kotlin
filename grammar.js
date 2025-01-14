@@ -506,7 +506,7 @@ module.exports = grammar({
 
     property_declaration: $ => prec("property_declaration", seq(
       optional(field("modifiers", $.modifiers)),
-      $.binding_pattern_kind,
+      field("binding_pattern", $.binding_pattern_kind),
       optional(field("type_parameters", $.type_parameters)),
       optional(seq(field("receiver_type", $.receiver_type), ".")),
       field("var_decl", choice($.variable_declaration, $.multi_variable_declaration)),
@@ -515,7 +515,7 @@ module.exports = grammar({
         repeat($._NL),
         choice(
           seq("=", repeat($._NL), field("initializer", $.expression)),
-          $.property_delegate
+          field("delegate", $.property_delegate)
       ))),
       optional(
         seq(      
@@ -527,7 +527,15 @@ module.exports = grammar({
       )
     )),
 
-    property_delegate: $ => prec("property_delegate", seq("by", repeat($._NL), $.expression)),
+    property_delegate: $ => prec("property_delegate", 
+      seq(
+        field("by", $.by), 
+        repeat($._NL), 
+        $.expression
+      )
+    ),
+    
+    by: $ => "by",
 
     _setter_getter: $ => choice(
       seq($.getter, optional(seq(repeat($._NL), $.setter))),

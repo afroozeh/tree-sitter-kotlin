@@ -18,7 +18,7 @@ fun foo() {
         (statements
           (statement
             (property_declaration
-              (binding_pattern_kind)
+              binding_pattern: (binding_pattern_kind)
               var_decl: (variable_declaration
                 id: (simple_identifier))
               initializer: (call_expression
@@ -66,13 +66,14 @@ class  A {
         modifiers: (modifiers
           (inheritance_modifier)
           (member_modifier))
-        (binding_pattern_kind)
+        binding_pattern: (binding_pattern_kind)
         var_decl: (variable_declaration
           id: (simple_identifier)
           type: (nullable_type
             type: (user_type
               (type_identifier))))
-        (property_delegate
+        delegate: (property_delegate
+          by: (by)
           (callable_reference
             receiver: (user_type
               (type_identifier))
