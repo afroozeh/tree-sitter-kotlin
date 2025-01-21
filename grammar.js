@@ -790,7 +790,7 @@ module.exports = grammar({
 
     assignment: $ => prec.left("assignment", seq(
       field("left", $.expression),
-      field("op", $._assignment_operator),
+      field("operator", $._assignment_operator),
       repeat($._NL),
       field("right", $.expression)
     )),
@@ -897,11 +897,13 @@ module.exports = grammar({
     )),
 
     labeled_expression: $ => prec("label", seq(
-      $.label, repeat($._NL), $.expression)
-    ),
+      field("label", $.label), 
+      repeat($._NL), 
+      field("expression", $.expression)
+    )),
 
     prefix_expression: $ => prec("prefix", seq(
-      field("op", $._prefix_unary_operator), 
+      field("operator", $._prefix_unary_operator), 
       repeat($._NL),
       field("expression", $.expression))
     ),
@@ -926,45 +928,81 @@ module.exports = grammar({
     ),
 
     multiplicative_expression: $ => prec.left("mul", seq(
-      $.expression, repeat($._external_nl), $._multiplicative_operator, repeat($._NL), $.expression
+      field("left", $.expression), 
+      repeat($._external_nl), 
+      field("operator", $._multiplicative_operator), 
+      repeat($._NL), 
+      field("right", $.expression)
     )),
 
     additive_expression: $ => prec.left("add", seq(
-      $.expression, repeat($._external_nl), $._additive_operator, repeat($._NL), $.expression
+      field("left", $.expression), 
+      repeat($._external_nl), 
+      field("operator", $._additive_operator), 
+      repeat($._NL), 
+      field("right", $.expression)
     )),
 
     range_expression: $ => prec.left("range", seq(
-      $.expression, repeat($._external_nl), $._range_opeartor, repeat($._NL), $.expression
+      field("left", $.expression), 
+      repeat($._external_nl), 
+      field("operator", $._range_operator), 
+      repeat($._NL), 
+      field("right", $.expression)
     )),
 
     infix_expression: $ => prec.left("infix", seq(
-      $.expression, repeat($._external_nl), field("op", $.simple_identifier), repeat($._NL), $.expression
+      field("left", $.expression), 
+      repeat($._external_nl), 
+      field("operator", $.simple_identifier), 
+      repeat($._NL), 
+      field("right", $.expression)
     )),
 
     elvis_expression: $ => prec.left("elvis", seq(
-      $.expression, repeat($._external_nl), $._ELVIS, repeat($._NL), $.expression
+      field("left", $.expression), 
+      repeat($._external_nl), 
+      field("operator", $._ELVIS), 
+      repeat($._NL), 
+      field("right", $.expression)
     )),
 
     in_expression: $ => prec.left("check", seq(
-      $.expression, repeat($._external_nl), $._in_operator, repeat($._NL), $.expression
+      field("left", $.expression), 
+      repeat($._external_nl), 
+      field("operator", $._in_operator), 
+      repeat($._NL), 
+      field("right", $.expression)
     )),
 
     is_expression: $ => prec("check", seq(
-      $.expression, repeat($._external_nl), $._is_operator, repeat($._NL), $._type
+      field("left", $.expression), 
+      repeat($._external_nl), 
+      field("operator", $._is_operator), 
+      repeat($._NL), 
+      field("right", $._type)
     )),
 
     comparison_expression: $ => prec.left("comparison", seq(
-      $.expression, repeat($._external_nl), $._comparison_operator, repeat($._NL), $.expression
+      field("left", $.expression), 
+      repeat($._external_nl), 
+      field("operator", $._comparison_operator), 
+      repeat($._NL), 
+      field("right", $.expression)
     )),
 
     equality_expression: $ => prec.left("equality", seq(
-      $.expression, repeat($._external_nl), field("op", $._equality_operator), repeat($._NL), $.expression
+      field("left", $.expression), 
+      repeat($._external_nl), 
+      field("operator", $._equality_operator), 
+      repeat($._NL), 
+      field("right", $.expression)
     )),
 
     conjunction_expression: $ => prec.left("conjunction", seq(
       field("left", $.expression), 
       repeat($._external_nl),
-      "&&",
+      field("operator", "&&"),
       repeat($._NL),
       field("right", $.expression))
     ),
@@ -972,7 +1010,7 @@ module.exports = grammar({
     disjunction_expression: $ => prec.left("disjunction", seq(
       field("left", $.expression), 
       repeat($._external_nl),
-      "||",
+      field("operator", "||"),
       repeat($._NL),
       field("right", $.expression))
     ),
@@ -982,7 +1020,7 @@ module.exports = grammar({
     annotated_lambda: $ => seq(
       repeat($._annotation),
       optional($.label),
-      $.lambda_literal
+      field("lambda_literal", $.lambda_literal)
     ),
 
     // Here we're defining a dynamic precedence for type arguments to resolve the ambiguity
@@ -1012,7 +1050,7 @@ module.exports = grammar({
     value_argument: $ => seq(
       optional($._annotation),
       repeat($._NL),
-      // dynamic precedece so that tree-sitter doesn't parse f(a = b) as an assignment...
+      // dynamic precedence so that tree-sitter doesn't parse f(a = b) as an assignment...
       optional(seq(field("name", $.simple_identifier), repeat($._NL), prec.dynamic(10, "="), repeat($._NL))),
       optional("*"),
       repeat($._NL),
@@ -1353,7 +1391,7 @@ module.exports = grammar({
 
     _postfix_unary_operator: $ => choice("++", "--", "!!"),
 
-    _range_opeartor: $ => choice("..", "..<"),
+    _range_operator: $ => choice("..", "..<"),
 
     // ==========
     // Modifiers

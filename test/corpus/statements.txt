@@ -160,7 +160,7 @@ val foo = Foo()
               (type_identifier))))
         selector: (simple_identifier))
       lambda_arg: (annotated_lambda
-        (lambda_literal
+        lambda_literal: (lambda_literal
           body: (statements
             (statement
               (call_expression
@@ -292,8 +292,8 @@ if (x > 0)
   (statement
     (if_expression
       condition: (comparison_expression
-        (simple_identifier)
-        (integer_literal))
+        left: (simple_identifier)
+        right: (integer_literal))
       consequence: (for_statement
         var_decl: (variable_declaration
           id: (simple_identifier))
@@ -390,7 +390,7 @@ internal val ImageBitmap.isEmptyPlaceholder: Boolean
       (call_expression
         expression: (simple_identifier)
         lambda_arg: (annotated_lambda
-          (lambda_literal
+          lambda_literal: (lambda_literal
             body: (statements
               (statement
                 (call_expression
@@ -414,8 +414,8 @@ internal val ImageBitmap.isEmptyPlaceholder: Boolean
     (getter
       (function_body
         expression: (equality_expression
-          (this_expression)
-          (simple_identifier))))))
+          left: (this_expression)
+          right: (simple_identifier))))))
 
 
 ================================================================================
@@ -472,8 +472,8 @@ while (true) when (val frame = input.readFrame(Long.MAX_VALUE, 0)) {
 (source_file
   (statement
     (labeled_expression
-      (label)
-      (while_statement
+      label: (label)
+      expression: (while_statement
         (boolean_literal)
         (when_expression
           (when_subject
