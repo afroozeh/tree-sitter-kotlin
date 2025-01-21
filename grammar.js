@@ -231,7 +231,7 @@ module.exports = grammar({
 
   supertypes: $ => [
     $.expression,
-    $.jump_expression
+    $.jump_expression,
   ],
 
   word: $ => $._alpha_identifier,
@@ -1079,16 +1079,24 @@ module.exports = grammar({
 
     _line_string_literal: $ => seq(
       '"',
-      repeat(choice(
-        alias($.line_string_content, $.string_content), 
-        alias(DOLLAR_IN_STRING_CONTENT, $.string_content),
-        $._interpolation
-      )),
-      // Need to consume the last '$' character here, and create a node in the tree
-      choice('"', seq(alias("$", $.string_content), '"'))
+      optional(field("content", alias($.line_string_content, $.string_content))),
+      '"'
     ),
 
-    line_string_content: $ => token.immediate(prec(PREC.STRING_CONTENT, choice(
+    line_string_content: $ => choice(
+      seq(
+        repeat1(choice(
+          $.line_string_content_part, 
+          DOLLAR_IN_STRING_CONTENT,
+          $._interpolation
+        )),
+        // Need to consume the last '$' character here, and create a node in the tree
+        optional("$")
+      ), 
+      "$"
+    ),
+
+    line_string_content_part: $ => token.immediate(prec(PREC.STRING_CONTENT, choice(
       /[^\\"$]+/,
       repeat1(uni_character_literal),
       escaped_identifier
@@ -1096,19 +1104,26 @@ module.exports = grammar({
 
     _multi_line_string_literal: $ => prec.right(seq(
       '"""',
-      repeat(choice(
-        alias($.multi_line_string_content, $.string_content), 
-        alias(DOLLAR_IN_STRING_CONTENT, $.string_content), 
-        QUOTE_IN_MULTI_LINE_STRING_CONTENT,
-        $._interpolation,
-      )),
-      // Need to consume the last '$' character here, and create a node in the tree
-      optional(alias("$", $.string_content)),
+      optional(field("content", alias($.multi_line_string_content, $.string_content))),
       '"""',
       repeat('"')
     )),
 
-    multi_line_string_content: $ => token(prec(PREC.STRING_CONTENT, /[^"$]+/)),
+    multi_line_string_content: $ => choice(
+      seq(
+        repeat1(choice(
+          $.multi_line_string_content_part, 
+          DOLLAR_IN_STRING_CONTENT, 
+          QUOTE_IN_MULTI_LINE_STRING_CONTENT,
+          $._interpolation,
+        )),
+        // Need to consume the last '$' character here, and create a node in the tree
+        optional("$"),
+      ),
+      "$"
+    ),
+
+    multi_line_string_content_part: $ => token(prec(PREC.STRING_CONTENT, /[^"$]+/)),
 
     _interpolation: $ => choice(
       seq("${", repeat($._NL), alias($.expression, $.interpolated_expression), repeat($._NL), "}"),

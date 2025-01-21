@@ -78,7 +78,8 @@ class Strings {
         parameters: (function_value_parameters)
         body: (function_body
           expression: (string_literal
-            (string_content))))
+            content: (string_content
+              (line_string_content_part)))))
       (function_declaration
         name: (simple_identifier)
         parameters: (function_value_parameters)
@@ -86,11 +87,14 @@ class Strings {
           expression: (additive_expression
             (additive_expression
               (string_literal
-                (string_content))
+                content: (string_content
+                  (line_string_content_part)))
               (string_literal
-                (string_content)))
+                content: (string_content
+                  (line_string_content_part))))
             (string_literal
-              (string_content))))))))
+              content: (string_content
+                (line_string_content_part)))))))))
 
 ================================================================================
 Class with modifiers
@@ -225,24 +229,21 @@ class Something {
     body: (class_body
       (property_declaration
         binding_pattern: (binding_pattern_kind)
-        var_decl:
-        (variable_declaration
+        var_decl: (variable_declaration
           id: (simple_identifier)
           type: (user_type
             (type_identifier)))
         initializer: (integer_literal))
       (property_declaration
         binding_pattern: (binding_pattern_kind)
-        var_decl:
-        (variable_declaration
+        var_decl: (variable_declaration
           id: (simple_identifier)
           type: (nullable_type
             type: (user_type
               (type_identifier)))))
       (property_declaration
         binding_pattern: (binding_pattern_kind)
-        var_decl:
-        (variable_declaration
+        var_decl: (variable_declaration
           id: (simple_identifier)
           type: (user_type
             (type_identifier)))
@@ -254,7 +255,8 @@ class Something {
         var_decl: (variable_declaration
           id: (simple_identifier))
         initializer: (string_literal
-          (string_content))))))    
+          content: (string_content
+            (line_string_content_part)))))))
 
 ================================================================================
 Constructor delegation calls
@@ -422,7 +424,8 @@ enum class Enum {
               args: (value_arguments
                 (value_argument
                   expression: (string_literal
-                    (string_content)))))))
+                    content: (string_content
+                      (line_string_content_part))))))))
         name: (simple_identifier)))))
 
 ================================================================================
@@ -747,7 +750,8 @@ class Derived(b: Base) : Base by b {
                   args: (value_arguments
                     (value_argument
                       expression: (string_literal
-                        (string_content)))))))))))))
+                        content: (string_content
+                          (line_string_content_part))))))))))))))
 
 ================================================================================
 Explicit delegation with new Instance
@@ -1137,7 +1141,8 @@ public enum class CodeStyleValue {
           args: (value_arguments
             (value_argument
               expression: (string_literal
-                (string_content))))))
+                content: (string_content
+                  (line_string_content_part)))))))
       (visibility_modifier)
       (class_modifier))
     name: (simple_identifier)
