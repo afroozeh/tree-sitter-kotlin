@@ -160,6 +160,8 @@ module.exports = grammar({
     [$.dot_qualified_expression, $.call_expression, $.labeled_expression, $.as_expression, $.multiplicative_expression, $.additive_expression, $.range_expression, $.infix_expression, $.elvis_expression, $.in_expression, $.is_expression, $.comparison_expression, $.equality_expression, $.conjunction_expression, $.disjunction_expression],
     [$.dot_qualified_expression, $.call_expression, $.prefix_expression, $.as_expression, $.multiplicative_expression, $.additive_expression, $.range_expression, $.infix_expression, $.elvis_expression, $.in_expression, $.is_expression, $.comparison_expression, $.equality_expression, $.conjunction_expression, $.disjunction_expression],
     [$.dot_qualified_expression, $.call_expression, $.as_expression, $.multiplicative_expression, $.additive_expression, $.range_expression, $.infix_expression, $.elvis_expression, $.in_expression, $.is_expression, $.comparison_expression, $.equality_expression, $.conjunction_expression, $.disjunction_expression],
+    [$.dot_qualified_expression, $.call_expression, $.simple_call_expression, $.as_expression, $.multiplicative_expression, $.additive_expression, $.range_expression, $.infix_expression, $.elvis_expression, $.in_expression, $.is_expression, $.comparison_expression, $.equality_expression, $.conjunction_expression, $.disjunction_expression],
+    [$.call_expression, $.simple_call_expression],
 
     [$._simple_user_type, $._non_call_primary_expression],
     [$.variable_declaration, $._non_call_primary_expression],
@@ -222,6 +224,7 @@ module.exports = grammar({
   externals: $ => [
     $._ELVIS,
     $._external_nl,
+    $._nl_before_open_brace,
     $.multiline_comment,
     "(",
     ")",
@@ -866,6 +869,7 @@ module.exports = grammar({
     call_expression: $ => prec("call", seq(
       field("expression", $.expression), 
       optional($.type_arguments),
+      repeat($._external_nl),
       $._call_arguments
     )),
 
@@ -890,11 +894,9 @@ module.exports = grammar({
     // Right precedence here to extend the call to the right, i.e., `with (s) { s }`
     // should be parsed as a flat list of arguments. 
     _call_arguments: $ => prec.right(choice(
-      seq(
-        optional(seq(optional($._external_nl), field("args", $.value_arguments))), 
-        field("lambda_arg", $.annotated_lambda)
-      ),
-      seq(optional($._external_nl), field("args", $.value_arguments))
+      field("args", $.value_arguments), 
+      field("lambda_arg", $.annotated_lambda),
+      seq(field("args", $.value_arguments), repeat($._nl_before_open_brace), field("lambda_arg", $.annotated_lambda)),
     )),
     
     index_access_expression: $ => prec("index", seq(
