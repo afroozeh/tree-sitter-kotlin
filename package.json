@@ -12,7 +12,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/fwcd/tree-sitter-kotlin.git"
+    "url": "git+https://github.com/gitarcode/tree-sitter-kotlin"
   },
   "keywords": [
     "tree-sitter",
@@ -31,9 +31,9 @@
   "license": "MIT",
   "gypfile": true,
   "bugs": {
-    "url": "https://github.com/fwcd/tree-sitter-kotlin/issues"
+    "url": "https://github.com/gitarcode/tree-sitter-kotlin/issues"
   },
-  "homepage": "https://github.com/fwcd/tree-sitter-kotlin#readme",
+  "homepage": "https://github.com/gitarcode/tree-sitter-kotlin#readme",
   "dependencies": {
     "node-addon-api": "^7.1.0",
     "node-gyp-build": "^4.8.0"
